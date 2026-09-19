@@ -1,7 +1,29 @@
 # Player Analysis Toolkit
 
-本目录提供可复用的 Othello Quest 选手调查工具。它不会启动或修改 EG
-引擎，只读取已有的 OQ bundle 和 EG `game_*.json` 分析结果。
+## Acknowledgement and core engine dependency
+
+This project gratefully acknowledges [Takuto Yamana (Nyanyan)](https://github.com/Nyanyan),
+the creator of [Egaroucid](https://github.com/Nyanyan/Egaroucid), for developing and
+open-sourcing the strong, fast Othello engine and its console interface on which this
+toolkit is built. Egaroucid supplies the engine evaluations used by our Level22
+Reference construction, move-loss labels, off-book analysis, model preparation, and
+estimated-Elo calibration. Please visit the [official Egaroucid website](https://www.egaroucid.nyanyan.dev/en/)
+and cite the upstream project when using results derived from the engine.
+
+[Egaroucid for Console 7.8.1](https://github.com/Nyanyan/Egaroucid/releases/tag/console_v7.8.1)
+is currently a **core runtime dependency** of Player Analysis Toolkit. The pinned
+formal Windows/server build is `Egaroucid_for_Console_7_8_1_AVX512_AMD.exe`, the
+AMD-optimized AVX-512 build used for the frozen engine contracts and published
+artifacts. Local orchestration may use the 7.8.1 Windows SIMD build when explicitly
+configured, but reproducible formal runs must record and preserve the exact binary,
+resource set, level, book, thread, hash, and command contract. Existing engine output
+can be inspected without launching Egaroucid; rebuilding engine-derived artifacts
+requires this core dependency. Egaroucid is distributed under the GNU GPL v3 or later,
+and its bundled license and notices must be retained.
+
+本目录提供可复用的 Othello Quest 选手调查工具。基础分析命令不会启动或修改 EG
+引擎，只读取已有的 OQ bundle 和 EG `game_*.json` 分析结果；完整调查、
+Reference 构建和训练数据准备流程则通过受审计的 Egaroucid Console 合同调用上述核心依赖。
 
 项目以 [GNU GPL v3](LICENSE) 发布。仓库只收录通用工具、方法文档、研究脚本和
 可公开复现的技术材料；针对具体玩家生成的调查包、举报分组、异常结论和逐人报告
