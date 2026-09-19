@@ -1,0 +1,21 @@
+{
+  "id": "fixture_player",
+  "name": "Fixture Player 测试",
+  "gtype": "reversi",
+  "rating": 2012.5,
+  "high": 2077,
+  "win": 30,
+  "loss": 9,
+  "draw": 1,
+  "played": 40,
+  "last": "2026-08-01T12:34:56.000Z",
+  "chart": "must-not-enter-normalized-profile",
+  "hiddenR": 123.5,
+  "srecords": [
+    {"category": "teban", "name": "sente", "win": 18, "loss": 2, "draw": 0, "rating": 2088},
+    {"category": "teban", "name": "gote", "win": 12, "loss": 7, "draw": 1, "rating": 1944},
+    {"category": "opp", "name": "strong", "win": 0, "loss": 0, "draw": 0, "rating": 0},
+    {"category": "opp", "name": "weak", "win": 22, "loss": 3, "draw": 1, "rating": 2050},
+    {"category": "opening", "name": "Tiger", "win": 5, "loss": 1, "draw": 0, "rating": 1900}
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "first-long-think-absolute-evaluation-cutoff-config-v2",
+  "status": "v2",
+  "clip_min_strict_ply_inclusive": 5,
+  "cap_max_strict_ply_inclusive": 38,
+  "time_multiplier": 1.75,
+  "absolute_evaluation_threshold": 6.0,
+  "evaluation_comparison": "abs(current_score) > absolute_evaluation_threshold",
+  "evaluation_scope": "target-player non-pass nodes only",
+  "evaluation_value": "current_score before the target player's move; raw_loss and disc_loss are not used",
+  "evaluation_cutoff": "first qualifying target node inside the inclusive strict-ply range",
+  "time_search": "earliest node satisfying the v1 time rule, strictly before the evaluation cutoff; search through the cap when no cutoff exists",
+  "time_comparison": "current_thinking_time_ms > time_multiplier * median(all prior same-player non-pass thinking times)",
+  "history_includes_pre_clip_nodes": true,
+  "anchor_selection": "time anchor before cutoff when present; otherwise evaluation cutoff; otherwise no_anchor",
+  "recorded_time_policy": "only player views explicitly listed by source games.csv recorded_sides are analyzed",
+  "sampling": {
+    "seed": 42,
+    "anchor_ply_bins": 10,
+    "anchors_per_bin": 3,
+    "no_anchor_examples": 2,
+    "distinct_original_games": true,
+    "manual_or_model_labels_used": false
+  }
+}

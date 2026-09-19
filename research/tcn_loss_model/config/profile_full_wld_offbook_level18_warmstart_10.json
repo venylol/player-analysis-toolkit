@@ -1,0 +1,24 @@
+{
+  "input_policy": "uniform-no-current-player-loss-history-v1",
+  "model_variant": "oq-profile-offbook-level18",
+  "oq_profile_ablation": "full-31",
+  "offbook_schema": "offbook-ply-level18-hint6-v1",
+  "offbook_normalization": "offbook_ply / 60.0",
+  "offbook_algorithm_version": "first-log-time-or-abs6-with-post-fast-v5",
+  "offbook_source_engine_level": 18,
+  "training": {
+    "head_epochs": 0,
+    "fine_tune_epochs": 10,
+    "batch_size": 32,
+    "head_learning_rate": 0.001,
+    "fine_tune_learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "time_task_weight": 0.25,
+    "severity_classification_weight": 1.0,
+    "wld_classification_weight": 1.0,
+    "severity_class_weights": [1.0, 1.0, 1.0, 1.0],
+    "num_workers": 0,
+    "seed": 42,
+    "training_mode": "joint"
+  }
+}

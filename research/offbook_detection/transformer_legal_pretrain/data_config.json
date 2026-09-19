@@ -1,0 +1,30 @@
+{
+  "schema": "transformer-legal-pretrain-data-v1",
+  "base": {
+    "format": "board-cnn-shards-v1",
+    "directory": "../../tcn_loss_model/archive/cnn_pretrain_snapshot_stm_v1_20260809/data/board_cnn_pretrain_shards",
+    "splits": {
+      "train": [
+        "0000000.bcnn", "0000001.bcnn", "0000002.bcnn", "0000003.bcnn",
+        "0000004.bcnn", "0000005.bcnn", "0000006.bcnn", "0000007.bcnn",
+        "0000008.bcnn", "0000009.bcnn", "0000010.bcnn", "0000011.bcnn",
+        "0000012.bcnn", "0000013.bcnn", "0000014.bcnn", "0000015.bcnn",
+        "0000016.bcnn", "0000017.bcnn", "0000018.bcnn", "0000019.bcnn",
+        "0000020.bcnn", "0000021.bcnn", "0000022.bcnn", "0000023.bcnn"
+      ],
+      "validation": ["0000024.bcnn"],
+      "test": ["0000025.bcnn"]
+    }
+  },
+  "passSupplement": {
+    "format": "transformer-legal-pass-supplement-v1",
+    "path": "data/pass_supplement_11200_v1.npz",
+    "manifest": "data/pass_supplement_11200_v1.manifest.json",
+    "splitField": "split"
+  },
+  "combinedCounts": {
+    "train": 24008755,
+    "validation": 1001121,
+    "test": 515219
+  }
+}

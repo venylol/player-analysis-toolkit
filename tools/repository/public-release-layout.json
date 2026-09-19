@@ -1,0 +1,61 @@
+{
+  "schema": "player-analysis-public-release-layout-v1",
+  "assets": [
+    {
+      "name": "oq-bilateral-3531-training-data",
+      "path": "research/tcn_loss_model/data/oq_elo2000_5min_bilateral_3531_20260803"
+    },
+    {
+      "name": "oq-10000-source-only-data",
+      "path": "research/tcn_loss_model/data/oq_elo2000_5min_bilateral_10000_source_only_20260804"
+    },
+    {
+      "name": "oq-10000-profile-retrospective-data",
+      "path": "research/tcn_loss_model/data/oq_elo2000_5min_bilateral_10000_oq_profile_retrospective_20260804"
+    },
+    {
+      "name": "oq-model-ready-10000-profile-retrospective",
+      "path": "research/tcn_loss_model/outputs/oq_tcn_model_ready_10000_oq_profile_retrospective_20260804"
+    },
+    {
+      "name": "oq-model-ready-11200-profile-retrospective",
+      "path": "research/tcn_loss_model/outputs/oq_tcn_model_ready_11200_oq_profile_retrospective_20260805"
+    },
+    {
+      "name": "oq-player-profiles-2339-public-snapshot",
+      "path": "research/tcn_loss_model/outputs/oq_player_profiles_2339_retrospective_20260804"
+    },
+    {
+      "name": "oq-profile-ensemble-11200-warmstart10",
+      "path": "research/tcn_loss_model/outputs/oq_profile_full31_ensemble12_11200_warmstart10_20260805"
+    },
+    {
+      "name": "tcn-base-checkpoint",
+      "path": "research/tcn_loss_model/checkpoints/base"
+    },
+    {
+      "name": "windows-9950x-egaroucid-handoff",
+      "path": "research/server_handoffs/oq_egaroucid_windows_9950x_20260803_final"
+    },
+    {
+      "name": "oq-reference-matchup600-source",
+      "path": "research/offbook_detection/data/oq_elo_matchup600_blackwhite_reference_level22_1600plus_20260911"
+    },
+    {
+      "name": "oq-sentinel-reference-v11-matchup600",
+      "path": "research/offbook_detection/data/oq_sentinel_reference_level22_1600plus_v11_20260911"
+    },
+    {
+      "name": "oq-sentinel-elo-reference-v4-matchup600",
+      "path": "research/offbook_detection/data/oq_sentinel_elo_reference_level22_1600plus_v4_matchup600_20260911"
+    },
+    {
+      "name": "oq-sentinel-elo-anscombe-v4-matchup600",
+      "path": "research/offbook_detection/data/oq_sentinel_elo_anscombe_reference_v4_matchup600_20260911"
+    },
+    {
+      "name": "oq-sentinel-elo-calibration-v4-matchup600",
+      "path": "research/offbook_detection/data/oq_sentinel_elo_calibration_v4_matchup600_20260911"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "first-long-think-median-ratio-config-v1",
+  "status": "v1",
+  "clip_min_strict_ply_inclusive": 5,
+  "cap_max_strict_ply_inclusive": 38,
+  "time_multiplier": 1.75,
+  "comparison": "current_thinking_time_ms > time_multiplier * median(all prior same-player non-pass thinking times)",
+  "history_includes_pre_clip_nodes": true,
+  "anchor_selection": "earliest qualifying target-player non-pass node",
+  "no_anchor_policy": "no_anchor when no node qualifies inside the inclusive strict-ply range",
+  "sampling": {
+    "seed": 42,
+    "anchor_ply_bins": 10,
+    "anchors_per_bin": 3,
+    "no_anchor_examples": 2,
+    "distinct_original_games": true,
+    "manual_or_model_labels_used": false
+  }
+}

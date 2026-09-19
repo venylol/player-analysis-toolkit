@@ -1,0 +1,30 @@
+{
+  "input_policy": "uniform-no-current-player-loss-history-v1",
+  "board_perspective": "snapshot_side_to_move_v1",
+  "model_variant": "oq-profile",
+  "oq_profile_ablation": "full-31",
+  "training": {
+    "training_mode": "cnn-stage-c",
+    "epochs": 10,
+    "head_epochs": 0,
+    "fine_tune_epochs": 0,
+    "last_unfrozen_residual_blocks": 6,
+    "cnn_learning_rate": 0.00001,
+    "non_cnn_learning_rate": 0.00005,
+    "batch_size": 32,
+    "mixed_precision": true,
+    "gradient_accumulation_steps": 1,
+    "seed": 42,
+    "weight_decay": 0.0001,
+    "time_task_weight": 0.25,
+    "severity_classification_weight": 1.0,
+    "wld_classification_weight": 1.0,
+    "severity_class_weights": [1.0, 1.0, 1.0, 1.0],
+    "num_workers": 0,
+    "auxiliary_nodes_per_game": 2,
+    "legal_aux_weight": 0.10,
+    "value_aux_weight": 0.10,
+    "early_stopping_patience": 6,
+    "initial_stage_checkpoint_sha256": "e98e6f0a484127401a909884e977a75f8dfd7110d9084191b3cd024de2ea679f"
+  }
+}

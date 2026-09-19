@@ -1,0 +1,36 @@
+{
+  "schema": "manual-offbook-time-baseline-cohort-v1",
+  "description": "Six previously Agent-reviewed 30-game player investigations evaluated with the frozen single base time model.",
+  "cohorts": [
+    {
+      "account": "bambooL",
+      "data": "investigations/bambooL_investigation_20260809/model_data_base/personal_model_ready.npz",
+      "marks": "investigations/bambooL_investigation_20260809/agent_marks.json"
+    },
+    {
+      "account": "lianmian0v0",
+      "data": "investigations/lianmian0v0_investigation_20260809/model_data_base/personal_model_ready.npz",
+      "marks": "investigations/lianmian0v0_investigation_20260809/agent_marks.json"
+    },
+    {
+      "account": "SilverSiro",
+      "data": "investigations/SilverSiro_investigation_20260809/model_data_base/personal_model_ready.npz",
+      "marks": "investigations/SilverSiro_investigation_20260809/agent_marks.json"
+    },
+    {
+      "account": "xiaoqi_",
+      "data": "investigations/xiaoqi_investigation_20260809/model_data_base/personal_model_ready.npz",
+      "marks": "investigations/xiaoqi_investigation_20260809/agent_marks.json"
+    },
+    {
+      "account": "z779",
+      "data": "investigations/z779_profile_tcn_20260805/base_model_ready/personal_model_ready.npz",
+      "marks": "investigations/z779_profile_tcn_20260805/z779-agent-marks.json"
+    },
+    {
+      "account": "zertion",
+      "data": "investigations/zertion_intake_20260808/model_materialization_tcn_full31_wld_20260809/base_corrected_v2/personal_model_ready.npz",
+      "marks": "investigations/zertion_intake_20260808/zertion-agent-marks.json"
+    }
+  ]
+}

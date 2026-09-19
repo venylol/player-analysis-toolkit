@@ -1,0 +1,29 @@
+{
+  "schema": "stage3-single-change-point-config-v1",
+  "status": "frozen",
+  "seed": 42,
+  "projection_dim": 16,
+  "projection": "train-only IncrementalPCA over all target non-pass decisions",
+  "time_features": [
+    "thinking_time_ms",
+    "target_remaining_time_ms_after",
+    "opponent_remaining_time_ms_after"
+  ],
+  "time_standardization": "stage2 train-only log1p median/IQR",
+  "candidate_min_target_decision": 3,
+  "candidate_max_target_decision": 19,
+  "candidate_max_strict_ply_inclusive": 38,
+  "minimum_post_change_decisions": 3,
+  "no_change_prior": 0.5,
+  "finite_candidate_prior": "uniform within each sequence",
+  "student_t_degrees_of_freedom": 5.0,
+  "scale_floor": 0.0001,
+  "optimizer": "AdamW",
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "batch_size": 512,
+  "max_epochs": 100,
+  "early_stopping_patience": 10,
+  "selection_metric": "validation marginal NLL per effective decision node",
+  "test_usage": "one evaluation after all configuration and model selection are frozen"
+}

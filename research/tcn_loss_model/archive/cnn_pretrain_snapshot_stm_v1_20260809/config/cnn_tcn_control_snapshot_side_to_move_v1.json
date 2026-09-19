@@ -1,0 +1,13 @@
+{
+  "status": "plan-only-do-not-run",
+  "purpose": "newly trained comparison/control using the same board semantics as the pretrained-CNN candidate",
+  "input_policy": "uniform-no-current-player-loss-history-v1",
+  "board_perspective": "snapshot_side_to_move_v1",
+  "board_feature_revision": "board_context_snapshot_side_to_move_v1__23_planes_v1",
+  "legacy_checkpoint_reproduction": false,
+  "required_data_contract": {
+    "board_perspective": "snapshot_side_to_move_v1",
+    "board_feature_revision": "board_context_snapshot_side_to_move_v1__23_planes_v1"
+  },
+  "note": "Any legacy fixed-color checkpoint must instead use an explicitly legacy_fixed_color dataset and must not be compared as a newly trained control."
+}

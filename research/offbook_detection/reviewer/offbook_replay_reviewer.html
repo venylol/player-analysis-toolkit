@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>脱谱候选实时回放审查器</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111614;
+      --panel: #19201d;
+      --panel-2: #202925;
+      --line: #34403a;
+      --text: #edf3ef;
+      --muted: #9aaba2;
+      --green: #54d28c;
+      --green-dark: #125f3d;
+      --red: #ff716b;
+      --red-soft: #5c2928;
+      --amber: #f3bd5b;
+      --amber-soft: #5c4822;
+      --blue: #75b9ff;
+      --board-a: #278558;
+      --board-b: #238052;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 70% -10%, rgba(50, 121, 83, .18), transparent 34rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button, select, textarea, input[type="search"] {
+      color: var(--text);
+      background: #222b27;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    button { cursor: pointer; }
+    button:hover:not(:disabled) { border-color: #64786e; background: #2a3630; }
+    button:disabled { opacity: .38; cursor: default; }
+    .app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 15px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(18, 24, 21, .92);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .brand { min-width: 238px; }
+    .brand h1 { font-size: 17px; margin: 0; letter-spacing: .02em; }
+    .brand p { color: var(--muted); margin: 3px 0 0; font-size: 12px; }
+    .import-zone {
+      min-height: 46px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      border: 1px dashed #52645b;
+      border-radius: 12px;
+      color: var(--muted);
+      transition: .15s ease;
+    }
+    .import-zone.dragging { border-color: var(--green); background: rgba(84, 210, 140, .08); }
+    .file-button {
+      color: #07150e;
+      background: var(--green);
+      padding: 9px 14px;
+      border-radius: 9px;
+      font-weight: 760;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .file-button input { display: none; }
+    .import-help { font-size: 12px; line-height: 1.35; }
+    .status {
+      max-width: 310px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
+    .status.error { color: var(--red); }
+    .status.ok { color: var(--green); }
+    .layout { display: grid; grid-template-columns: 310px minmax(560px, 1fr) 360px; min-height: 0; }
+    .layout.inspector-collapsed { grid-template-columns: 310px minmax(560px, 1fr) 58px; }
+    .sidebar, .inspector { background: var(--panel); min-height: 0; }
+    .sidebar { border-right: 1px solid var(--line); }
+    .inspector { border-left: 1px solid var(--line); }
+    .sidebar-inner, .inspector-inner { position: sticky; top: 77px; height: calc(100vh - 77px); overflow: auto; }
+    .filters { padding: 14px; border-bottom: 1px solid var(--line); display: grid; gap: 9px; }
+    .filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    select, input[type="search"] { width: 100%; padding: 9px 10px; outline: none; }
+    input[type="search"]:focus, select:focus { border-color: var(--green); }
+    .library-summary { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; }
+    .game-list { padding: 8px; display: grid; gap: 5px; }
+    .game-item {
+      text-align: left;
+      padding: 10px 11px;
+      display: grid;
+      gap: 5px;
+      width: 100%;
+      background: transparent;
+      border-color: transparent;
+    }
+    .game-item.selected { background: #29352f; border-color: #657c70; }
+    .game-item.has-candidate { box-shadow: inset 3px 0 var(--red); }
+    .game-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .game-badges { display: flex; gap: 4px; flex-shrink: 0; }
+    .game-account { font-weight: 720; overflow: hidden; text-overflow: ellipsis; }
+    .game-id { font: 11px ui-monospace, Consolas, monospace; color: var(--muted); }
+    .game-meta { color: var(--muted); font-size: 11px; }
+    .badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 2px 7px; font-size: 10px; font-weight: 760; }
+    .badge.algorithm { color: #ffeceb; background: var(--red-soft); }
+    .badge.manual { color: #fff0ce; background: var(--amber-soft); }
+    .badge.reviewer { color: #dff7ff; background: rgba(78, 168, 255, .23); }
+    .badge.none { color: var(--muted); background: #29322e; }
+    .main { padding: 22px; min-width: 0; }
+    .empty {
+      min-height: calc(100vh - 122px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+    }
+    .empty-card { max-width: 580px; padding: 42px; border: 1px solid var(--line); background: var(--panel); border-radius: 18px; box-shadow: var(--shadow); }
+    .empty-card h2 { color: var(--text); margin: 0 0 12px; font-size: 22px; }
+    .empty-card p { line-height: 1.65; }
+    .review { display: none; max-width: 980px; margin: 0 auto; }
+    .review.visible { display: block; }
+    .game-heading { display: flex; justify-content: space-between; gap: 16px; align-items: start; margin-bottom: 14px; }
+    .game-heading h2 { margin: 0 0 4px; font-size: 20px; }
+    .game-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+    .heading-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; }
+    .board-section { display: grid; grid-template-columns: minmax(380px, 590px) minmax(190px, 1fr); gap: 18px; align-items: start; }
+    .board-card, .clock-card, .timeline-card, .info-card, .chart-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .board-card { padding: 15px; }
+    .board-frame { transition: box-shadow .18s, border-color .18s; border: 2px solid transparent; border-radius: 11px; }
+    .board-frame.algorithm-now { border-color: var(--red); box-shadow: 0 0 0 5px rgba(255, 113, 107, .12); }
+    .board-frame.manual-now { border-color: var(--amber); box-shadow: 0 0 0 5px rgba(243, 189, 91, .12); }
+    .board-frame.reviewer-now { border-color: var(--blue); box-shadow: 0 0 0 5px rgba(78, 168, 255, .13); }
+    .board-frame.both-now { border-color: #dc91ff; box-shadow: 0 0 0 5px rgba(220, 145, 255, .13); }
+    .board-top-labels { display: grid; grid-template-columns: 22px repeat(8, 1fr); margin-bottom: 5px; color: var(--muted); font-size: 11px; text-align: center; }
+    .board-row { display: grid; grid-template-columns: 22px 1fr; }
+    .rank-labels { display: grid; grid-template-rows: repeat(8, 1fr); color: var(--muted); font-size: 11px; text-align: center; align-items: center; }
+    .board {
+      aspect-ratio: 1;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      overflow: hidden;
+      border-radius: 7px;
+      border: 1px solid #0a3c26;
+      background: var(--board-a);
+    }
+    .square {
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: var(--board-a);
+      border: 0;
+      border-right: 1px solid rgba(3, 49, 29, .78);
+      border-bottom: 1px solid rgba(3, 49, 29, .78);
+      border-radius: 0;
+      padding: 9%;
+    }
+    .square:nth-child(16n + 2), .square:nth-child(16n + 4), .square:nth-child(16n + 6), .square:nth-child(16n + 8),
+    .square:nth-child(16n + 9), .square:nth-child(16n + 11), .square:nth-child(16n + 13), .square:nth-child(16n + 15) { background: var(--board-b); }
+    .disc { width: 88%; height: 88%; border-radius: 50%; box-shadow: 0 7px 12px rgba(0, 0, 0, .35), inset 0 1px 1px rgba(255,255,255,.22); }
+    .disc.black { background: radial-gradient(circle at 35% 28%, #4b5550, #111 45%, #050706); }
+    .disc.white { background: radial-gradient(circle at 35% 28%, #fff, #e4e8e5 52%, #aab2ad); }
+    .last-marker { position: absolute; inset: 17%; border: 3px solid var(--blue); border-radius: 50%; pointer-events: none; }
+    .board-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+    .score { display: flex; gap: 12px; }
+    .score span { display: inline-flex; align-items: center; gap: 5px; }
+    .mini-disc { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+    .mini-disc.black { background: #050706; border: 1px solid #657069; }
+    .mini-disc.white { background: #eff3f0; }
+    .side-stack { display: grid; gap: 12px; }
+    .clock-card { padding: 15px; }
+    .clock-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .clock-time { font: 720 clamp(28px, 4vw, 46px) ui-monospace, Consolas, monospace; margin: 5px 0 4px; letter-spacing: -.04em; }
+    .clock-move { font-size: 13px; line-height: 1.45; }
+    .progress { height: 6px; background: #0d1310; border-radius: 999px; margin-top: 12px; overflow: hidden; }
+    .progress-fill { width: 0; height: 100%; background: var(--green); transition: width .08s linear; }
+    .clock-card.candidate .progress-fill { background: var(--red); }
+    .clock-card.manual .progress-fill { background: var(--amber); }
+    .controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 11px; }
+    .controls button { padding: 10px 6px; }
+    .play { background: var(--green); color: #07150e; border-color: transparent; font-weight: 800; }
+    .secondary-controls { margin-top: 9px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .secondary-controls label { color: var(--muted); font-size: 11px; display: grid; gap: 4px; }
+    .secondary-controls select { padding: 7px; }
+    .jump-row { display: flex; gap: 7px; margin-top: 9px; }
+    .jump-row button { flex: 1; padding: 8px; font-size: 12px; }
+    .scrubber { width: 100%; accent-color: var(--green); margin-top: 12px; }
+    .info-card { padding: 13px 14px; }
+    .info-card h3, .chart-card h3, .timeline-card h3 { margin: 0 0 9px; font-size: 13px; }
+    .info-grid { display: grid; gap: 7px; font-size: 12px; }
+    .info-row { display: flex; justify-content: space-between; gap: 10px; }
+    .info-row span:first-child { color: var(--muted); }
+    .chart-card { margin-top: 18px; padding: 14px; }
+    .chart-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .chart-legend { color: var(--muted); font-size: 10px; display: flex; gap: 10px; }
+    .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; }
+    #time-chart { width: 100%; height: 150px; display: block; }
+    .timeline-card { margin-top: 18px; overflow: hidden; }
+    .timeline-head { padding: 13px 14px 8px; display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+    .timeline { max-height: 330px; overflow: auto; border-top: 1px solid var(--line); }
+    .move-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 44px 54px minmax(100px, 1fr) 82px 86px;
+      gap: 7px;
+      align-items: center;
+      padding: 8px 12px;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid #28312d;
+      border-radius: 0;
+      text-align: left;
+      font-size: 12px;
+    }
+    .move-row:hover { background: #222b27 !important; }
+    .move-row.active { background: #2b3832; box-shadow: inset 3px 0 var(--green); }
+    .move-row.applied { color: #a9b8b0; }
+    .move-coordinate { font: 700 13px ui-monospace, Consolas, monospace; }
+    .move-time { font: 12px ui-monospace, Consolas, monospace; text-align: right; }
+    .move-markers { display: flex; justify-content: end; gap: 3px; }
+    .marker { width: 22px; height: 18px; display: grid; place-items: center; border-radius: 5px; font-size: 10px; font-weight: 850; }
+    .marker.a { background: var(--red-soft); color: #fff; }
+    .marker.m { background: var(--amber-soft); color: #fff1d0; }
+    .marker.r { background: rgba(78, 168, 255, .30); color: #e7f7ff; }
+    .inspector-inner { padding: 16px; display: grid; align-content: start; gap: 12px; }
+    .inspector-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 10px; text-align: left; background: transparent; border-color: transparent; border-radius: 10px; font-size: 15px; font-weight: 800; }
+    .inspector-toggle:hover:not(:disabled) { background: #222b27; border-color: var(--line); }
+    .inspector-toggle-icon { color: var(--muted); font-size: 18px; line-height: 1; }
+    .inspector-content { display: grid; gap: 12px; }
+    .inspector.collapsed .inspector-content { display: none; }
+    .inspector.collapsed .inspector-inner { padding: 10px 6px; }
+    .inspector.collapsed .inspector-toggle { justify-content: center; padding: 10px 4px; }
+    .inspector.collapsed .inspector-toggle-label { writing-mode: vertical-rl; font-size: 12px; }
+    .inspector.collapsed .inspector-toggle-icon { display: none; }
+    .anchor-card { padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel-2); }
+    .anchor-card.algorithm { border-left: 4px solid var(--red); }
+    .anchor-card.manual { border-left: 4px solid var(--amber); }
+    .anchor-card.reviewer { border-left: 4px solid var(--blue); }
+    .anchor-title { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 9px; }
+    .anchor-title strong { font-size: 13px; }
+    .anchor-value { font-size: 24px; font-weight: 820; margin-bottom: 9px; }
+    .anchor-details { display: grid; gap: 6px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .difference { padding: 11px 13px; border-radius: 12px; background: #202925; font-size: 12px; color: var(--muted); }
+    .difference strong { color: var(--text); }
+    .error-box { color: #ffd2cf; background: #422322; border: 1px solid #70403d; padding: 12px; border-radius: 12px; font-size: 12px; line-height: 1.5; }
+    .shortcut { color: var(--muted); font-size: 11px; line-height: 1.6; border-top: 1px solid var(--line); padding-top: 12px; }
+    .review-actions { display: grid; gap: 7px; margin-top: 12px; }
+    .review-actions button { padding: 8px 9px; font-size: 11px; }
+    .review-actions .primary { color: #07150e; background: var(--blue); border-color: transparent; font-weight: 760; }
+    .review-actions-row { display: grid; grid-template-columns: 1fr auto; gap: 7px; }
+    .reset-button, .export-button { padding: 8px 10px; white-space: nowrap; }
+    .export-button { color: #07150e; background: var(--green); border-color: transparent; font-weight: 760; }
+
+    @media (max-width: 1220px) {
+      .layout { grid-template-columns: 270px minmax(540px, 1fr); }
+      .layout.inspector-collapsed { grid-template-columns: 270px minmax(540px, 1fr); }
+      .inspector { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
+      .inspector-inner { position: static; height: auto; grid-template-columns: repeat(3, 1fr); }
+      .inspector-toggle, .inspector-content, .shortcut { grid-column: 1 / -1; }
+    }
+    @media (max-width: 860px) {
+      .topbar { position: static; flex-wrap: wrap; }
+      .brand { min-width: 0; }
+      .status { max-width: none; text-align: left; width: 100%; }
+      .layout { display: block; }
+      .sidebar-inner { position: static; height: auto; max-height: 390px; }
+      .main { padding: 14px; }
+      .board-section { grid-template-columns: 1fr; }
+      .side-stack { grid-template-columns: 1fr 1fr; }
+      .inspector-inner { display: grid; grid-template-columns: 1fr; }
+      .inspector h2, .shortcut { grid-column: auto; }
+    }
+    @media (max-width: 560px) {
+      .import-zone { align-items: start; flex-direction: column; }
+      .board-card { padding: 8px; }
+      .side-stack { grid-template-columns: 1fr; }
+      .move-row { grid-template-columns: 38px 48px 1fr 72px; }
+      .move-row .target-decision { display: none; }
+      .controls { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>脱谱候选实时回放审查器</h1>
+        <p>按 OQ 原始逐手用时播放 · 默认 1×</p>
+      </div>
+      <div class="import-zone" id="import-zone">
+        <label class="file-button">导入审查数据<input id="file-input" type="file" multiple accept=".json,.csv,application/json,text/csv"></label>
+        <div class="import-help">可选择一个合并回放包；或同时选择审查包 JSON 与算法汇总 CSV。也可将文件拖到这里。</div>
+      </div>
+      <button class="export-button" id="export-button" type="button" disabled>导出复核 JSON</button>
+      <button class="reset-button" id="reset-button" type="button">清空</button>
+      <div class="status" id="status">尚未导入数据</div>
+    </header>
+
+    <div class="layout" id="layout">
+      <aside class="sidebar">
+        <div class="sidebar-inner">
+          <div class="filters">
+            <div class="filter-row">
+              <select id="account-filter" aria-label="筛选选手"><option value="">全部选手</option></select>
+              <select id="candidate-filter" aria-label="筛选候选状态">
+                <option value="all">全部对局</option>
+                <option value="algorithm">算法有候选</option>
+                <option value="no_algorithm">算法无候选</option>
+                <option value="manual">原人工有锚点</option>
+                <option value="reviewed">我已复核</option>
+                <option value="disagree">算法与人工差异较大</option>
+              </select>
+            </div>
+            <input id="search-filter" type="search" placeholder="搜索 game ID / 对手">
+            <div class="library-summary"><span id="library-count">0 局</span><span id="candidate-count">0 个算法候选</span></div>
+          </div>
+          <div class="game-list" id="game-list"></div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="empty" id="empty-state">
+          <div class="empty-card">
+            <h2>把算法锚点放回真实时间里看</h2>
+            <p>播放时，棋盘会在每一手落下之前按该手真实思考毫秒数等待。进入算法候选手时棋盘显示红色边框；原人工锚点使用黄色，便于独立复核两者是否符合时间连续性。</p>
+            <p>推荐直接导入本工具生成的 <code>offbook-replay-review-bundle-v1</code> 文件。</p>
+          </div>
+        </section>
+
+        <section class="review" id="review">
+          <div class="game-heading">
+            <div><h2 id="game-title">—</h2><p id="game-subtitle">—</p></div>
+            <div class="heading-badges" id="heading-badges"></div>
+          </div>
+
+          <div class="board-section">
+            <div class="board-card">
+              <div class="board-frame" id="board-frame">
+                <div class="board-top-labels"><span></span><span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span></div>
+                <div class="board-row">
+                  <div class="rank-labels"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+                  <div class="board" id="board" aria-label="黑白棋棋盘"></div>
+                </div>
+              </div>
+              <div class="board-footer">
+                <div id="position-label">初始局面</div>
+                <div class="score"><span><i class="mini-disc black"></i><b id="black-count">2</b></span><span><i class="mini-disc white"></i><b id="white-count">2</b></span></div>
+              </div>
+            </div>
+
+            <div class="side-stack">
+              <div class="clock-card" id="clock-card">
+                <div class="clock-label" id="clock-label">下一手思考倒计时</div>
+                <div class="clock-time" id="clock-time">00:00.000</div>
+                <div class="clock-move" id="clock-move">选择一局开始审查</div>
+                <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+                <div class="controls">
+                  <button id="first-button" title="回到开局">|◀</button>
+                  <button id="prev-button" title="后退一手">◀</button>
+                  <button class="play" id="play-button" title="播放/暂停（空格）">播放</button>
+                  <button id="next-button" title="前进一手">▶</button>
+                  <button id="last-button" title="到终局">▶|</button>
+                </div>
+                <input class="scrubber" id="scrubber" type="range" min="0" max="60" value="0" aria-label="棋局进度">
+                <div class="secondary-controls">
+                  <label>播放速度<select id="speed-select"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×（一比一）</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option></select></label>
+                  <label>当前进度<select id="position-select" aria-label="直接跳转到 ply"><option value="0">开局</option></select></label>
+                </div>
+                <div class="jump-row">
+                  <button id="jump-algorithm">算法候选前3手</button>
+                  <button id="jump-manual">人工锚点前3手</button>
+                </div>
+              </div>
+
+              <div class="info-card">
+                <h3>当前局面</h3>
+                <div class="info-grid">
+                  <div class="info-row"><span>已落子</span><strong id="applied-count">0 / 0</strong></div>
+                  <div class="info-row"><span>下一行动方</span><strong id="next-player">—</strong></div>
+                  <div class="info-row"><span>最近着手</span><strong id="last-move">—</strong></div>
+                  <div class="info-row"><span>目标选手</span><strong id="target-player">—</strong></div>
+                  <div class="info-row"><span>每方初始总时限</span><strong id="initial-clock">—</strong></div>
+                  <div class="info-row"><span>黑 / 白实际思考合计</span><strong id="side-time-totals">—</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-head"><h3>目标选手逐手实际思考时间</h3><div class="chart-legend"><span><i class="legend-dot" style="background:var(--red)"></i>算法</span><span><i class="legend-dot" style="background:var(--amber)"></i>人工</span><span><i class="legend-dot" style="background:var(--blue)"></i>我的</span></div></div>
+            <canvas id="time-chart"></canvas>
+          </div>
+
+          <div class="timeline-card">
+            <div class="timeline-head"><h3>逐手时间线</h3><span>A = 算法，M = 原人工，R = 我的锚点</span></div>
+            <div class="timeline" id="timeline"></div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="inspector" id="inspector">
+        <div class="inspector-inner">
+          <button class="inspector-toggle" id="inspector-toggle" type="button" aria-expanded="true" aria-controls="inspector-content">
+            <span class="inspector-toggle-label" id="inspector-toggle-label">锚点对照</span>
+            <span class="inspector-toggle-icon" id="inspector-toggle-icon" aria-hidden="true">⌃</span>
+          </button>
+          <div class="inspector-content" id="inspector-content">
+            <div class="anchor-card algorithm" id="algorithm-card">
+            <div class="anchor-title"><strong>算法候选</strong><span class="badge algorithm" id="algorithm-confidence">—</span></div>
+            <div class="anchor-value" id="algorithm-ply">未导入</div>
+            <div class="anchor-details" id="algorithm-details"></div>
+            </div>
+            <div class="anchor-card manual" id="manual-card">
+            <div class="anchor-title"><strong>原人工记录</strong><span class="badge manual">仅作对照</span></div>
+            <div class="anchor-value" id="manual-ply">未导入</div>
+            <div class="anchor-details" id="manual-details"></div>
+            </div>
+            <div class="anchor-card reviewer" id="reviewer-card">
+            <div class="anchor-title"><strong>我的复核</strong><span class="badge reviewer">随 JSON 导出</span></div>
+            <div class="anchor-value" id="reviewer-ply">未标记</div>
+            <div class="anchor-details" id="reviewer-details"></div>
+            <div class="review-actions">
+              <button class="primary" id="mark-anchor" type="button">将当前下一手标为锚点</button>
+              <div class="review-actions-row">
+                <button id="mark-no-offbook" type="button">本局标为 no_offbook</button>
+                <button id="clear-review" type="button">清除</button>
+              </div>
+            </div>
+            </div>
+            <div class="difference" id="difference">导入后显示算法与原人工锚点的距离。</div>
+            <div class="error-box" id="replay-error" hidden></div>
+            <div class="shortcut">快捷键：空格播放/暂停；←/→ 单步；Home/End 到开局/终局；C 跳到算法候选前 3 手。我的锚点记录“当前下一手”的落子前局面。所有数据只在当前浏览器页面内读取，不会上传。</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    const $ = (id) => document.getElementById(id);
+    const elements = Object.fromEntries([
+      "import-zone", "file-input", "export-button", "reset-button", "status", "account-filter", "candidate-filter",
+      "search-filter", "library-count", "candidate-count", "game-list", "empty-state", "review",
+      "game-title", "game-subtitle", "heading-badges", "board-frame", "board", "position-label",
+      "black-count", "white-count", "clock-card", "clock-label", "clock-time", "clock-move",
+      "progress-fill", "first-button", "prev-button", "play-button", "next-button", "last-button",
+      "scrubber", "speed-select", "position-select", "jump-algorithm", "jump-manual", "applied-count",
+      "next-player", "last-move", "target-player", "initial-clock", "side-time-totals", "time-chart", "timeline", "algorithm-confidence", "layout", "inspector", "inspector-toggle", "inspector-toggle-label", "inspector-toggle-icon",
+      "algorithm-ply", "algorithm-details", "manual-ply", "manual-details", "reviewer-ply", "reviewer-details",
+      "mark-anchor", "mark-no-offbook", "clear-review", "difference", "replay-error"
+    ].map((id) => [id, $(id)]));
+
+    const store = {
+      packetGames: new Map(),
+      algorithms: new Map(),
+      manuals: new Map(),
+      reviewerMarks: new Map(),
+      games: [],
+      filteredGames: [],
+      selectedKey: null,
+      appliedPly: 0,
+      speed: 1,
+      running: false,
+      animationFrame: null,
+      clockMoveIndex: null,
+      remainingSourceMs: null,
+      lastTick: null,
+      importedFiles: new Set()
+    };
+
+    function gameKey(account, gameId) {
+      return `${String(account || "").trim().toLocaleLowerCase()}\u0000${String(gameId || "").trim()}`;
+    }
+
+    function numberOrNull(value) {
+      if (value === null || value === undefined || String(value).trim() === "") return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function integerOrNull(value) {
+      const number = numberOrNull(value);
+      if (number === null) return null;
+      const rounded = Math.round(number);
+      if (Math.abs(number - rounded) > 1e-8) throw new Error(`需要整数，实际为 ${value}`);
+      return rounded;
+    }
+
+    function boolValue(value) {
+      if (typeof value === "boolean") return value;
+      return ["true", "1", "yes"].includes(String(value || "").trim().toLocaleLowerCase());
+    }
+
+    function formatDuration(milliseconds) {
+      if (milliseconds === null || milliseconds === undefined || !Number.isFinite(milliseconds)) return "缺失";
+      const safe = Math.max(0, milliseconds);
+      const minutes = Math.floor(safe / 60000);
+      const seconds = Math.floor((safe % 60000) / 1000);
+      const ms = Math.floor(safe % 1000);
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
+    }
+
+    function formatShortDuration(milliseconds) {
+      if (milliseconds === null || milliseconds === undefined || !Number.isFinite(milliseconds)) return "—";
+      if (milliseconds < 1000) return `${Math.round(milliseconds)} ms`;
+      return `${(milliseconds / 1000).toFixed(milliseconds < 10000 ? 2 : 1)} s`;
+    }
+
+    function formatCreated(value) {
+      if (!value) return "时间未知";
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString("zh-CN", { hour12: false });
+    }
+
+    function setStatus(text, type = "") {
+      elements.status.textContent = text;
+      elements.status.className = `status ${type}`.trim();
+    }
+
+    function setInspectorCollapsed(collapsed) {
+      elements.layout.classList.toggle("inspector-collapsed", collapsed);
+      elements.inspector.classList.toggle("collapsed", collapsed);
+      elements["inspector-toggle"].setAttribute("aria-expanded", String(!collapsed));
+      elements["inspector-toggle-label"].textContent = collapsed ? "锚点对照（已折叠）" : "锚点对照";
+      elements["inspector-toggle-icon"].textContent = collapsed ? "⌄" : "⌃";
+    }
+
+    function toggleInspector() {
+      setInspectorCollapsed(!elements.inspector.classList.contains("collapsed"));
+    }
+
+    class OthelloBoard {
+      constructor() {
+        this.cells = Array(64).fill(null);
+        this.cells[3 * 8 + 3] = "white";
+        this.cells[3 * 8 + 4] = "black";
+        this.cells[4 * 8 + 3] = "black";
+        this.cells[4 * 8 + 4] = "white";
+        this.current = "black";
+      }
+
+      other(color) { return color === "black" ? "white" : "black"; }
+
+      captures(index, color) {
+        if (this.cells[index] !== null) return [];
+        const row = Math.floor(index / 8);
+        const col = index % 8;
+        const other = this.other(color);
+        const captured = [];
+        for (const [dr, dc] of [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]) {
+          let rr = row + dr;
+          let cc = col + dc;
+          const line = [];
+          while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && this.cells[rr * 8 + cc] === other) {
+            line.push(rr * 8 + cc);
+            rr += dr;
+            cc += dc;
+          }
+          if (line.length && rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && this.cells[rr * 8 + cc] === color) captured.push(...line);
+        }
+        return captured;
+      }
+
+      legalMoves(color = this.current) {
+        const result = [];
+        for (let index = 0; index < 64; index += 1) if (this.captures(index, color).length) result.push(index);
+        return result;
+      }
+
+      normalizeTurn() {
+        if (this.legalMoves(this.current).length) return;
+        const other = this.other(this.current);
+        if (this.legalMoves(other).length) this.current = other;
+      }
+
+      apply(move, expectedColor) {
+        this.normalizeTurn();
+        if (this.current !== expectedColor) throw new Error(`行动方不一致：棋盘为 ${this.current}，记录为 ${expectedColor}`);
+        if (!/^[a-h][1-8]$/i.test(move)) throw new Error(`非法坐标 ${move}`);
+        const col = move.toLocaleLowerCase().charCodeAt(0) - 97;
+        const row = Number(move[1]) - 1;
+        const index = row * 8 + col;
+        const flips = this.captures(index, this.current);
+        if (!flips.length) throw new Error(`${expectedColor} 的 ${move} 不是合法着手`);
+        this.cells[index] = this.current;
+        for (const flip of flips) this.cells[flip] = this.current;
+        this.current = this.other(this.current);
+        this.normalizeTurn();
+        return index;
+      }
+
+      snapshot(lastMove = null) {
+        return {
+          cells: this.cells.slice(),
+          current: this.current,
+          lastMove,
+          black: this.cells.filter((cell) => cell === "black").length,
+          white: this.cells.filter((cell) => cell === "white").length
+        };
+      }
+    }
+
+    function buildReplayStates(game) {
+      const board = new OthelloBoard();
+      const states = [board.snapshot()];
+      for (let index = 0; index < game.plies.length; index += 1) {
+        const ply = game.plies[index];
+        if (ply.ply !== index + 1) throw new Error(`strict ply 不连续：${ply.ply}，预期 ${index + 1}`);
+        const lastMove = board.apply(ply.move, ply.playerColor);
+        states.push(board.snapshot(lastMove));
+      }
+      return states;
+    }
+
+    function normalizeAlgorithm(raw) {
+      if (!raw) return null;
+      const hasCandidate = boolValue(raw.hasCandidate ?? raw.has_converged_candidate);
+      const candidatePly = integerOrNull(raw.candidatePly ?? raw.candidate_strict_ply);
+      return {
+        hasCandidate,
+        candidatePly,
+        candidateTargetDecision: integerOrNull(raw.candidateTargetDecision ?? raw.candidate_target_decision),
+        confidence: raw.confidence ?? raw.candidate_confidence ?? null,
+        supportCount: integerOrNull(raw.supportCount ?? raw.candidate_support_count),
+        supportingScales: Array.isArray(raw.supportingScales)
+          ? raw.supportingScales.map(Number)
+          : String(raw.candidate_supporting_scales || "").split(";").filter(Boolean).map(Number),
+        supportingDecisions: raw.supportingDecisions ?? raw.candidate_supporting_decisions ?? null,
+        convergenceScore: numberOrNull(raw.convergenceScore ?? raw.candidate_convergence_score),
+        foldThreshold: numberOrNull(raw.foldThreshold ?? raw.fold_convergence_threshold),
+        scaleCandidateCount: integerOrNull(raw.scaleCandidateCount ?? raw.scale_candidate_count),
+        convergenceClusterCount: integerOrNull(raw.convergenceClusterCount ?? raw.convergence_cluster_count)
+      };
+    }
+
+    function normalizeManual(raw) {
+      if (!raw) return null;
+      return {
+        judgment: String(raw.judgment || ""),
+        offbookPly: integerOrNull(raw.offbookPly ?? raw.offBookPly ?? raw.manual_offbook_ply),
+        targetDecisionNumber: integerOrNull(raw.targetDecisionNumber ?? raw.manual_offbook_target_decision),
+        note: raw.agentNote ?? raw.note ?? null
+      };
+    }
+
+    function normalizeReviewerMark(raw) {
+      if (!raw) return null;
+      const offbookPly = integerOrNull(raw.offbookPly ?? raw.offBookPly);
+      const judgment = String(raw.judgment || (offbookPly === null ? "no_offbook" : "offbook")).trim().toLocaleLowerCase();
+      if (!["offbook", "no_offbook"].includes(judgment)) throw new Error(`不支持的复核判断：${judgment}`);
+      if (judgment === "offbook" && offbookPly === null) throw new Error("复核判断为 offbook，但缺少 offbookPly");
+      return {
+        judgment,
+        offbookPly: judgment === "offbook" ? offbookPly : null,
+        targetDecisionNumber: judgment === "offbook" ? integerOrNull(raw.targetDecisionNumber) : null,
+        markedAt: raw.markedAt ? String(raw.markedAt) : null
+      };
+    }
+
+    function normalizePly(raw, index) {
+      const thinkingTime = numberOrNull(raw.thinkingTimeMs);
+      if (thinkingTime !== null && thinkingTime < 0) throw new Error(`ply ${index + 1} 的思考时间为负数`);
+      return {
+        ply: integerOrNull(raw.ply),
+        sourceMoveIndex: integerOrNull(raw.sourceMoveIndex),
+        move: String(raw.move || "").trim().toLocaleLowerCase(),
+        playerColor: String(raw.playerColor || "").trim().toLocaleLowerCase(),
+        playerAccount: String(raw.playerAccount || ""),
+        isTargetMove: boolValue(raw.isTargetMove),
+        targetDecisionNumber: integerOrNull(raw.targetDecisionNumber),
+        thinkingTimeMs: thinkingTime
+      };
+    }
+
+    function storeGame(raw, accountOverride = null) {
+      const account = String(accountOverride ?? raw.account ?? "").trim();
+      const gameId = String(raw.gameId || "").trim();
+      if (!account || !gameId) throw new Error("审查对局缺少 account 或 gameId");
+      const key = gameKey(account, gameId);
+      const plies = (raw.plies || []).map(normalizePly);
+      if (!plies.length) throw new Error(`${account}/${gameId} 没有逐手数据`);
+      const sideTimeSummary = Object.fromEntries(["black", "white"].map((color) => {
+        const supplied = raw.sideTimeSummary?.[color] || {};
+        const sidePlies = plies.filter((ply) => ply.playerColor === color);
+        const timed = sidePlies.filter((ply) => ply.thinkingTimeMs !== null);
+        return [color, {
+          initialTimeLimitMs: numberOrNull(supplied.initialTimeLimitMs),
+          summedThinkingTimeMs: numberOrNull(supplied.summedThinkingTimeMs) ?? timed.reduce((sum, ply) => sum + ply.thinkingTimeMs, 0),
+          moveCount: integerOrNull(supplied.moveCount) ?? sidePlies.length,
+          timedMoveCount: integerOrNull(supplied.timedMoveCount) ?? timed.length
+        }];
+      }));
+      const embeddedReviewerMark = normalizeReviewerMark(raw.reviewerMark);
+      if (embeddedReviewerMark) store.reviewerMarks.set(key, embeddedReviewerMark);
+      store.packetGames.set(key, {
+        key, account, gameId,
+        created: raw.created ?? null,
+        targetColor: String(raw.targetColor || "").toLocaleLowerCase(),
+        opponentAccount: String(raw.opponentAccount || ""),
+        actualMoveCount: plies.length,
+        targetMoveCount: integerOrNull(raw.targetMoveCount),
+        sideTimeSummary,
+        plies,
+        embeddedAlgorithm: normalizeAlgorithm(raw.algorithm),
+        embeddedManual: normalizeManual(raw.manualReview),
+        embeddedReviewerMark
+      });
+    }
+
+    function ingestReviewPacket(payload) {
+      const account = String(payload.account || "").trim();
+      if (!account) throw new Error("审查包缺少 account");
+      for (const game of payload.games || []) storeGame(game, account);
+    }
+
+    function ingestCombinedBundle(payload) {
+      for (const game of payload.games || []) storeGame(game);
+    }
+
+    function ingestManualMarks(payload) {
+      const account = String(payload.account || "").trim();
+      const rows = payload.marks || payload.records || [];
+      for (const raw of rows) store.manuals.set(gameKey(account, raw.gameId), normalizeManual(raw));
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        if (quoted) {
+          if (char === '"' && text[index + 1] === '"') { cell += '"'; index += 1; }
+          else if (char === '"') quoted = false;
+          else cell += char;
+        } else if (char === '"') quoted = true;
+        else if (char === ",") { row.push(cell); cell = ""; }
+        else if (char === "\n") { row.push(cell.replace(/\r$/, "")); rows.push(row); row = []; cell = ""; }
+        else cell += char;
+      }
+      if (cell.length || row.length) { row.push(cell.replace(/\r$/, "")); rows.push(row); }
+      if (quoted) throw new Error("CSV 引号未闭合");
+      if (!rows.length) return [];
+      const header = rows[0];
+      return rows.slice(1).filter((values) => values.some((value) => value !== "")).map((values) =>
+        Object.fromEntries(header.map((name, index) => [name, values[index] ?? ""]))
+      );
+    }
+
+    function ingestAlgorithmCsv(text) {
+      const rows = parseCsv(text);
+      if (!rows.length || !("account" in rows[0]) || !("game_id" in rows[0])) throw new Error("不是可识别的算法汇总 CSV");
+      for (const raw of rows) {
+        const key = gameKey(raw.account, raw.game_id);
+        store.algorithms.set(key, normalizeAlgorithm(raw));
+        store.manuals.set(key, normalizeManual(raw));
+      }
+    }
+
+    async function ingestFiles(fileList) {
+      const files = Array.from(fileList);
+      if (!files.length) return;
+      pausePlayback();
+      const errors = [];
+      let accepted = 0;
+      for (const file of files) {
+        try {
+          const text = await file.text();
+          if (file.name.toLocaleLowerCase().endsWith(".csv")) ingestAlgorithmCsv(text);
+          else {
+            const payload = JSON.parse(text);
+            if (payload.schema === "offbook-replay-review-bundle-v1") ingestCombinedBundle(payload);
+            else if (payload.schema === "player-offbook-agent-review-packet-v1") ingestReviewPacket(payload);
+            else if (["player-offbook-agent-marks-input-v1", "player-offbook-agent-records-v1"].includes(payload.schema)) ingestManualMarks(payload);
+            else throw new Error(`不支持的 JSON schema：${payload.schema || "缺失"}`);
+          }
+          store.importedFiles.add(file.name);
+          accepted += 1;
+        } catch (error) {
+          errors.push(`${file.name}: ${error.message}`);
+        }
+      }
+      rebuildLibrary();
+      if (errors.length) setStatus(`已读取 ${accepted} 个文件；${errors.join("；")}`, "error");
+      else setStatus(`已读取 ${store.importedFiles.size} 个文件，载入 ${store.games.length} 个选手－对局`, "ok");
+    }
+
+    function rebuildLibrary() {
+      const priorKey = store.selectedKey;
+      store.games = Array.from(store.packetGames.values()).map((game) => {
+        const merged = {
+          ...game,
+          algorithm: store.algorithms.get(game.key) ?? game.embeddedAlgorithm,
+          manual: store.manuals.get(game.key) ?? game.embeddedManual,
+          replayStates: null,
+          replayError: null
+        };
+        try { merged.replayStates = buildReplayStates(merged); }
+        catch (error) { merged.replayError = error.message; }
+        return merged;
+      }).sort((a, b) => a.account.localeCompare(b.account, "zh-CN", { sensitivity: "base" }) || String(a.created || "").localeCompare(String(b.created || "")) || a.gameId.localeCompare(b.gameId));
+
+      const accounts = [...new Set(store.games.map((game) => game.account))];
+      const currentAccount = elements["account-filter"].value;
+      elements["account-filter"].replaceChildren(new Option("全部选手", ""), ...accounts.map((account) => new Option(account, account)));
+      if (accounts.includes(currentAccount)) elements["account-filter"].value = currentAccount;
+      updateExportButton();
+      applyFilters();
+      if (priorKey && store.games.some((game) => game.key === priorKey)) selectGame(priorKey);
+      else if (store.filteredGames.length) selectGame(store.filteredGames[0].key);
+      else showEmpty();
+    }
+
+    function applyFilters() {
+      const account = elements["account-filter"].value;
+      const candidateMode = elements["candidate-filter"].value;
+      const search = elements["search-filter"].value.trim().toLocaleLowerCase();
+      store.filteredGames = store.games.filter((game) => {
+        if (account && game.account !== account) return false;
+        const algorithm = game.algorithm;
+        const manualPly = game.manual?.offbookPly ?? null;
+        const algorithmPly = algorithm?.hasCandidate ? algorithm.candidatePly : null;
+        if (candidateMode === "algorithm" && algorithmPly === null) return false;
+        if (candidateMode === "no_algorithm" && algorithmPly !== null) return false;
+        if (candidateMode === "manual" && manualPly === null) return false;
+        if (candidateMode === "reviewed" && !store.reviewerMarks.has(game.key)) return false;
+        if (candidateMode === "disagree") {
+          const differs = manualPly === null !== (algorithmPly === null) || (manualPly !== null && algorithmPly !== null && Math.abs(manualPly - algorithmPly) > 4);
+          if (!differs) return false;
+        }
+        if (search && !`${game.gameId} ${game.opponentAccount} ${game.account}`.toLocaleLowerCase().includes(search)) return false;
+        return true;
+      });
+      renderGameList();
+    }
+
+    function renderGameList() {
+      elements["game-list"].replaceChildren();
+      const algorithmCount = store.filteredGames.filter((game) => game.algorithm?.hasCandidate).length;
+      elements["library-count"].textContent = `${store.filteredGames.length} 局`;
+      elements["candidate-count"].textContent = `${algorithmCount} 个算法候选`;
+      for (const game of store.filteredGames) {
+        const reviewerMark = store.reviewerMarks.get(game.key) || null;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `game-item ${game.algorithm?.hasCandidate ? "has-candidate" : ""} ${game.key === store.selectedKey ? "selected" : ""}`;
+        const line = document.createElement("div");
+        line.className = "game-line";
+        const account = document.createElement("span");
+        account.className = "game-account";
+        account.textContent = `${game.account} · ${game.targetColor === "black" ? "黑" : "白"}`;
+        const badges = document.createElement("span");
+        badges.className = "game-badges";
+        const badge = document.createElement("span");
+        badge.className = `badge ${game.algorithm?.hasCandidate ? "algorithm" : "none"}`;
+        badge.textContent = game.algorithm?.hasCandidate ? `A ply ${game.algorithm.candidatePly}` : "无 A";
+        badges.append(badge);
+        if (reviewerMark) {
+          const reviewerBadge = document.createElement("span");
+          reviewerBadge.className = "badge reviewer";
+          reviewerBadge.textContent = reviewerMark.offbookPly ? `R ply ${reviewerMark.offbookPly}` : "R no_offbook";
+          badges.append(reviewerBadge);
+        }
+        line.append(account, badges);
+        const id = document.createElement("div");
+        id.className = "game-id";
+        id.textContent = game.gameId;
+        const meta = document.createElement("div");
+        meta.className = "game-meta";
+        meta.textContent = `vs ${game.opponentAccount || "未知"} · ${game.manual?.offbookPly ? `M ply ${game.manual.offbookPly}` : "M 无锚点"}`;
+        button.append(line, id, meta);
+        button.addEventListener("click", () => selectGame(game.key));
+        elements["game-list"].append(button);
+      }
+    }
+
+    function selectedGame() { return store.games.find((game) => game.key === store.selectedKey) || null; }
+
+    function selectGame(key) {
+      pausePlayback();
+      store.selectedKey = key;
+      store.appliedPly = 0;
+      resetClock();
+      renderGameList();
+      renderSelectedGame(true);
+    }
+
+    function showEmpty() {
+      store.selectedKey = null;
+      elements["empty-state"].style.display = "grid";
+      elements.review.classList.remove("visible");
+    }
+
+    function makeBadge(text, className) {
+      const badge = document.createElement("span");
+      badge.className = `badge ${className}`;
+      badge.textContent = text;
+      return badge;
+    }
+
+    function renderHeadingBadges(game) {
+      const reviewerMark = store.reviewerMarks.get(game.key) || null;
+      elements["heading-badges"].replaceChildren();
+      elements["heading-badges"].append(
+        game.algorithm?.hasCandidate ? makeBadge(`算法 ply ${game.algorithm.candidatePly}`, "algorithm") : makeBadge("算法未报点", "none"),
+        game.manual?.offbookPly ? makeBadge(`人工 ply ${game.manual.offbookPly}`, "manual") : makeBadge("人工 no_offbook", "none"),
+        reviewerMark
+          ? makeBadge(reviewerMark.offbookPly ? `我的 ply ${reviewerMark.offbookPly}` : "我的 no_offbook", "reviewer")
+          : makeBadge("我的未复核", "none")
+      );
+    }
+
+    function renderSelectedGame(rebuildStatic = false) {
+      const game = selectedGame();
+      if (!game) return showEmpty();
+      elements["empty-state"].style.display = "none";
+      elements.review.classList.add("visible");
+      if (rebuildStatic) {
+        elements["game-title"].textContent = `${game.account}（${game.targetColor === "black" ? "黑" : "白"}） vs ${game.opponentAccount || "未知对手"}`;
+        elements["game-subtitle"].textContent = `${game.gameId} · ${formatCreated(game.created)}`;
+        renderHeadingBadges(game);
+        elements["replay-error"].hidden = !game.replayError;
+        elements["replay-error"].textContent = game.replayError ? `棋谱回放校验失败：${game.replayError}` : "";
+        elements.scrubber.max = String(game.plies.length);
+        elements["position-select"].replaceChildren(new Option("开局", "0"), ...game.plies.map((ply) => new Option(`ply ${ply.ply} · ${ply.move}`, String(ply.ply))));
+        renderAnchorInspector(game);
+        renderTimeline(game);
+      }
+      renderPosition(game);
+      renderReviewerInspector(game);
+      if (!rebuildStatic) updateTimelineActive();
+      drawTimeChart(game);
+    }
+
+    function renderAnchorInspector(game) {
+      const algorithm = game.algorithm;
+      if (algorithm?.hasCandidate) {
+        elements["algorithm-ply"].textContent = `ply ${algorithm.candidatePly}`;
+        elements["algorithm-confidence"].textContent = algorithm.confidence ? `${algorithm.confidence} · ${algorithm.supportCount ?? "?"}尺度` : `${algorithm.supportCount ?? "?"}尺度`;
+        elements["algorithm-details"].replaceChildren(
+          detailLine(`目标决策：${algorithm.candidateTargetDecision ?? "—"}`),
+          detailLine(`支持尺度：${algorithm.supportingScales?.join(" / ") || "—"}`),
+          detailLine(`收敛分数：${algorithm.convergenceScore?.toFixed(6) ?? "—"}`),
+          detailLine(`该局尺度候选 / 收敛簇：${algorithm.scaleCandidateCount ?? "—"} / ${algorithm.convergenceClusterCount ?? "—"}`)
+        );
+      } else {
+        elements["algorithm-ply"].textContent = algorithm ? "未报点" : "未导入";
+        elements["algorithm-confidence"].textContent = "—";
+        elements["algorithm-details"].replaceChildren(detailLine(algorithm ? "最高收敛未通过该折阈值" : "请同时导入算法汇总 CSV"));
+      }
+      const manual = game.manual;
+      if (manual?.offbookPly) {
+        elements["manual-ply"].textContent = `ply ${manual.offbookPly}`;
+        elements["manual-details"].replaceChildren(
+          detailLine(`原判断：${manual.judgment || "offbook"}`),
+          detailLine(`目标决策：${manual.targetDecisionNumber ?? "—"}`),
+          ...(manual.note ? [detailLine(`备注：${manual.note}`)] : [])
+        );
+      } else {
+        elements["manual-ply"].textContent = manual ? "no_offbook" : "未导入";
+        elements["manual-details"].replaceChildren(detailLine(manual ? "原人工记录未设置锚点" : "没有人工对照信息"));
+      }
+      const a = algorithm?.hasCandidate ? algorithm.candidatePly : null;
+      const m = manual?.offbookPly ?? null;
+      if (a !== null && m !== null) {
+        const difference = a - m;
+        elements.difference.replaceChildren(document.createTextNode("算法相对人工："), strongText(`${difference === 0 ? "同一手" : `${difference > 0 ? "晚" : "早"} ${Math.abs(difference)} ply`}`));
+      } else if (a !== null) elements.difference.textContent = "算法报点，但原人工记录为 no_offbook。";
+      else if (m !== null) elements.difference.textContent = "原人工有锚点，但算法没有形成通过阈值的收敛。";
+      else elements.difference.textContent = "算法和原人工记录都没有锚点。";
+      elements["jump-algorithm"].disabled = a === null;
+      elements["jump-manual"].disabled = m === null;
+    }
+
+    function renderReviewerInspector(game) {
+      const mark = store.reviewerMarks.get(game.key) || null;
+      const next = game.plies[store.appliedPly] || null;
+      if (mark?.judgment === "offbook") {
+        elements["reviewer-ply"].textContent = `ply ${mark.offbookPly}`;
+        elements["reviewer-details"].replaceChildren(
+          detailLine(`我的判断：offbook`),
+          detailLine(`目标决策：${mark.targetDecisionNumber ?? "—"}`),
+          ...(mark.markedAt ? [detailLine(`记录时间：${formatCreated(mark.markedAt)}`)] : [])
+        );
+      } else if (mark) {
+        elements["reviewer-ply"].textContent = "no_offbook";
+        elements["reviewer-details"].replaceChildren(
+          detailLine("我的判断：本局没有明确脱谱锚点"),
+          ...(mark.markedAt ? [detailLine(`记录时间：${formatCreated(mark.markedAt)}`)] : [])
+        );
+      } else {
+        elements["reviewer-ply"].textContent = "未标记";
+        elements["reviewer-details"].replaceChildren(detailLine(
+          next?.isTargetMove
+            ? `当前可标记：ply ${next.ply}，目标决策 ${next.targetDecisionNumber}`
+            : next
+              ? `当前下一手是对手（ply ${next.ply}），请前进或后退到目标棋手思考局面`
+              : "当前为终局，请后退到目标棋手思考局面"
+        ));
+      }
+      const canMarkAnchor = !!next?.isTargetMove && !game.replayError;
+      elements["mark-anchor"].disabled = !canMarkAnchor;
+      elements["mark-anchor"].textContent = canMarkAnchor
+        ? `标记当前锚点：ply ${next.ply}`
+        : "将当前下一手标为锚点";
+      elements["mark-no-offbook"].disabled = !!game.replayError;
+      elements["clear-review"].disabled = !mark;
+    }
+
+    function refreshReviewerMarkUI(game) {
+      renderHeadingBadges(game);
+      renderPosition(game);
+      renderReviewerInspector(game);
+      renderTimeline(game);
+      renderGameList();
+      drawTimeChart(game);
+      updateExportButton();
+    }
+
+    function markCurrentAnchor() {
+      const game = selectedGame();
+      if (!game) return;
+      pausePlayback();
+      const next = game.plies[store.appliedPly] || null;
+      if (!next?.isTargetMove || game.replayError) return;
+      store.reviewerMarks.set(game.key, {
+        judgment: "offbook",
+        offbookPly: next.ply,
+        targetDecisionNumber: next.targetDecisionNumber,
+        markedAt: new Date().toISOString()
+      });
+      refreshReviewerMarkUI(game);
+    }
+
+    function markNoOffbook() {
+      const game = selectedGame();
+      if (!game || game.replayError) return;
+      pausePlayback();
+      store.reviewerMarks.set(game.key, {
+        judgment: "no_offbook",
+        offbookPly: null,
+        targetDecisionNumber: null,
+        markedAt: new Date().toISOString()
+      });
+      refreshReviewerMarkUI(game);
+    }
+
+    function clearReviewerMark() {
+      const game = selectedGame();
+      if (!game) return;
+      pausePlayback();
+      store.reviewerMarks.delete(game.key);
+      refreshReviewerMarkUI(game);
+    }
+
+    function detailLine(text) { const line = document.createElement("div"); line.textContent = text; return line; }
+    function strongText(text) { const strong = document.createElement("strong"); strong.textContent = text; return strong; }
+
+    function renderPosition(game) {
+      const safePly = Math.max(0, Math.min(store.appliedPly, game.plies.length));
+      store.appliedPly = safePly;
+      const state = game.replayStates?.[safePly] || new OthelloBoard().snapshot();
+      const next = game.plies[safePly] || null;
+      const last = safePly > 0 ? game.plies[safePly - 1] : null;
+      const algorithmNow = next && game.algorithm?.hasCandidate && next.ply === game.algorithm.candidatePly;
+      const manualNow = next && game.manual?.offbookPly && next.ply === game.manual.offbookPly;
+      const reviewerNow = next && store.reviewerMarks.get(game.key)?.offbookPly === next.ply;
+      elements["board-frame"].className = `board-frame ${algorithmNow && manualNow ? "both-now" : algorithmNow ? "algorithm-now" : manualNow ? "manual-now" : reviewerNow ? "reviewer-now" : ""}`;
+      const squares = elements.board.children;
+      state.cells.forEach((cell, index) => {
+        const square = squares[index];
+        square.replaceChildren();
+        if (cell) { const disc = document.createElement("span"); disc.className = `disc ${cell}`; square.append(disc); }
+        if (state.lastMove === index) { const marker = document.createElement("span"); marker.className = "last-marker"; square.append(marker); }
+      });
+      elements["position-label"].textContent = safePly ? `ply ${safePly} 后 · 最近 ${last.move}` : "初始局面";
+      elements["black-count"].textContent = state.black;
+      elements["white-count"].textContent = state.white;
+      elements["applied-count"].textContent = `${safePly} / ${game.plies.length}`;
+      elements["next-player"].textContent = next ? `${next.playerAccount || (next.playerColor === "black" ? "黑方" : "白方")}（${next.playerColor === "black" ? "黑" : "白"}）` : "终局";
+      elements["last-move"].textContent = last ? `ply ${last.ply} · ${last.move} · ${formatShortDuration(last.thinkingTimeMs)}` : "—";
+      elements["target-player"].textContent = `${game.account}（${game.targetColor === "black" ? "黑" : "白"}）`;
+      const initialBlack = game.sideTimeSummary?.black?.initialTimeLimitMs ?? null;
+      const initialWhite = game.sideTimeSummary?.white?.initialTimeLimitMs ?? null;
+      elements["initial-clock"].textContent = initialBlack === null && initialWhite === null
+        ? "未提供"
+        : initialBlack === initialWhite
+          ? `${formatShortDuration(initialBlack)} / 方`
+          : `${formatShortDuration(initialBlack)} / ${formatShortDuration(initialWhite)}`;
+      elements["side-time-totals"].textContent = `${formatShortDuration(game.sideTimeSummary?.black?.summedThinkingTimeMs)} / ${formatShortDuration(game.sideTimeSummary?.white?.summedThinkingTimeMs)}`;
+      elements.scrubber.value = String(safePly);
+      elements["position-select"].value = String(safePly);
+      elements["first-button"].disabled = safePly === 0;
+      elements["prev-button"].disabled = safePly === 0;
+      elements["next-button"].disabled = safePly >= game.plies.length || !!game.replayError;
+      elements["last-button"].disabled = safePly >= game.plies.length || !!game.replayError;
+      elements["play-button"].disabled = safePly >= game.plies.length || !!game.replayError;
+      renderClock(game);
+    }
+
+    function fullMoveTime(move) { return move?.thinkingTimeMs === null || move?.thinkingTimeMs === undefined ? 0 : Math.max(0, move.thinkingTimeMs); }
+
+    function resetClock() {
+      store.clockMoveIndex = null;
+      store.remainingSourceMs = null;
+      store.lastTick = null;
+    }
+
+    function ensureClock(game) {
+      if (store.clockMoveIndex !== store.appliedPly) {
+        store.clockMoveIndex = store.appliedPly;
+        store.remainingSourceMs = fullMoveTime(game.plies[store.appliedPly]);
+      }
+    }
+
+    function renderClock(game) {
+      const next = game.plies[store.appliedPly] || null;
+      ensureClock(game);
+      const total = fullMoveTime(next);
+      const remaining = next ? store.remainingSourceMs : 0;
+      const algorithmNow = next && game.algorithm?.hasCandidate && next.ply === game.algorithm.candidatePly;
+      const manualNow = next && game.manual?.offbookPly && next.ply === game.manual.offbookPly;
+      elements["clock-card"].className = `clock-card ${algorithmNow ? "candidate" : manualNow ? "manual" : ""}`;
+      elements["clock-label"].textContent = next ? (algorithmNow && manualNow ? "算法候选 + 人工锚点 · 正在思考" : algorithmNow ? "算法候选手 · 正在思考" : manualNow ? "原人工锚点手 · 正在思考" : "下一手真实思考倒计时") : "棋局结束";
+      elements["clock-time"].textContent = next ? formatDuration(remaining) : "终局";
+      elements["clock-move"].textContent = next ? `ply ${next.ply} · ${next.playerAccount || next.playerColor} · 将下 ${next.move}${next.isTargetMove ? ` · 目标决策 ${next.targetDecisionNumber}` : ""}` : `共 ${game.plies.length} 个实际落子`;
+      const completion = total > 0 ? Math.max(0, Math.min(1, 1 - remaining / total)) : (next ? 0 : 1);
+      elements["progress-fill"].style.width = `${completion * 100}%`;
+      elements["play-button"].textContent = store.running ? "暂停" : "播放";
+    }
+
+    function consumeClock(sourceMilliseconds) {
+      const game = selectedGame();
+      if (!game || game.replayError) return;
+      let remainingDelta = sourceMilliseconds;
+      while (store.appliedPly < game.plies.length) {
+        ensureClock(game);
+        const remaining = store.remainingSourceMs ?? 0;
+        if (remainingDelta < remaining) {
+          store.remainingSourceMs = remaining - remainingDelta;
+          return;
+        }
+        remainingDelta -= remaining;
+        store.appliedPly += 1;
+        resetClock();
+        renderSelectedGame(false);
+        if (remainingDelta <= 0) return;
+      }
+      pausePlayback();
+    }
+
+    function playbackTick(now) {
+      if (!store.running) return;
+      if (store.lastTick === null) store.lastTick = now;
+      const elapsed = Math.max(0, now - store.lastTick);
+      store.lastTick = now;
+      consumeClock(elapsed * store.speed);
+      const game = selectedGame();
+      if (game) renderClock(game);
+      if (store.running) store.animationFrame = requestAnimationFrame(playbackTick);
+    }
+
+    function startPlayback() {
+      const game = selectedGame();
+      if (!game || game.replayError || store.appliedPly >= game.plies.length || store.running) return;
+      store.running = true;
+      store.lastTick = performance.now();
+      renderClock(game);
+      store.animationFrame = requestAnimationFrame(playbackTick);
+    }
+
+    function pausePlayback() {
+      if (store.animationFrame !== null) cancelAnimationFrame(store.animationFrame);
+      store.animationFrame = null;
+      store.running = false;
+      store.lastTick = null;
+      const game = selectedGame();
+      if (game) renderClock(game);
+    }
+
+    function togglePlayback() { store.running ? pausePlayback() : startPlayback(); }
+
+    function seekTo(ply) {
+      const game = selectedGame();
+      if (!game) return;
+      pausePlayback();
+      store.appliedPly = Math.max(0, Math.min(Number(ply), game.plies.length));
+      resetClock();
+      renderSelectedGame(false);
+    }
+
+    function jumpBefore(ply) { if (ply !== null && ply !== undefined) seekTo(Math.max(0, Number(ply) - 4)); }
+
+    function renderTimeline(game) {
+      elements.timeline.replaceChildren();
+      const reviewerMark = store.reviewerMarks.get(game.key) || null;
+      for (const ply of game.plies) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "move-row";
+        row.dataset.ply = String(ply.ply);
+        const plyCell = document.createElement("span"); plyCell.textContent = `#${ply.ply}`;
+        const moveCell = document.createElement("span"); moveCell.className = "move-coordinate"; moveCell.textContent = ply.move;
+        const playerCell = document.createElement("span"); playerCell.textContent = `${ply.playerAccount || ply.playerColor}${ply.isTargetMove ? " · 目标" : ""}`;
+        const decisionCell = document.createElement("span"); decisionCell.className = "target-decision"; decisionCell.textContent = ply.targetDecisionNumber ? `决策 ${ply.targetDecisionNumber}` : "";
+        const timeCell = document.createElement("span"); timeCell.className = "move-time"; timeCell.textContent = formatShortDuration(ply.thinkingTimeMs);
+        const markerCell = document.createElement("span"); markerCell.className = "move-markers";
+        if (game.algorithm?.hasCandidate && ply.ply === game.algorithm.candidatePly) { const marker = document.createElement("i"); marker.className = "marker a"; marker.textContent = "A"; markerCell.append(marker); }
+        if (game.manual?.offbookPly && ply.ply === game.manual.offbookPly) { const marker = document.createElement("i"); marker.className = "marker m"; marker.textContent = "M"; markerCell.append(marker); }
+        if (reviewerMark?.offbookPly && ply.ply === reviewerMark.offbookPly) { const marker = document.createElement("i"); marker.className = "marker r"; marker.textContent = "R"; markerCell.append(marker); }
+        row.append(plyCell, moveCell, playerCell, decisionCell, timeCell);
+        row.append(markerCell);
+        row.style.gridTemplateColumns = "44px 54px minmax(100px,1fr) 82px 76px 52px";
+        row.addEventListener("click", () => seekTo(ply.ply - 1));
+        elements.timeline.append(row);
+      }
+      updateTimelineActive();
+    }
+
+    function updateTimelineActive() {
+      const rows = elements.timeline.querySelectorAll(".move-row");
+      rows.forEach((row) => {
+        const ply = Number(row.dataset.ply);
+        row.classList.toggle("active", ply === store.appliedPly + 1);
+        row.classList.toggle("applied", ply <= store.appliedPly);
+      });
+      const active = elements.timeline.querySelector(".move-row.active");
+      if (active) {
+        const activeRect = active.getBoundingClientRect();
+        const timelineRect = elements.timeline.getBoundingClientRect();
+        if (activeRect.top < timelineRect.top) elements.timeline.scrollTop -= timelineRect.top - activeRect.top;
+        else if (activeRect.bottom > timelineRect.bottom) elements.timeline.scrollTop += activeRect.bottom - timelineRect.bottom;
+      }
+    }
+
+    function drawTimeChart(game) {
+      const canvas = elements["time-chart"];
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width < 10) return;
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * ratio);
+      canvas.height = Math.round(150 * ratio);
+      const context = canvas.getContext("2d");
+      context.scale(ratio, ratio);
+      context.clearRect(0, 0, rect.width, 150);
+      const target = game.plies.filter((ply) => ply.isTargetMove);
+      if (!target.length) return;
+      const left = 32, right = 12, top = 18, bottom = 24;
+      const width = rect.width - left - right;
+      const height = 150 - top - bottom;
+      const maximum = Math.max(1, ...target.map((ply) => ply.thinkingTimeMs || 0));
+      context.strokeStyle = "#34403a";
+      context.lineWidth = 1;
+      context.beginPath(); context.moveTo(left, top + height); context.lineTo(left + width, top + height); context.stroke();
+      const step = width / target.length;
+      target.forEach((ply, index) => {
+        const barHeight = height * ((ply.thinkingTimeMs || 0) / maximum);
+        const x = left + index * step + step * .16;
+        const barWidth = Math.max(2, step * .68);
+        context.fillStyle = ply.ply <= store.appliedPly ? "#54d28c" : "#52635a";
+        if (game.algorithm?.hasCandidate && ply.ply === game.algorithm.candidatePly) context.fillStyle = "#ff716b";
+        else if (game.manual?.offbookPly && ply.ply === game.manual.offbookPly) context.fillStyle = "#f3bd5b";
+        else if (store.reviewerMarks.get(game.key)?.offbookPly === ply.ply) context.fillStyle = "#4ea8ff";
+        context.fillRect(x, top + height - barHeight, barWidth, barHeight);
+      });
+      context.fillStyle = "#9aaba2";
+      context.font = "10px system-ui";
+      context.fillText(formatShortDuration(maximum), 2, top + 3);
+      context.fillText("0", 18, top + height + 3);
+      context.fillText("目标决策 →", Math.max(left, left + width - 66), 145);
+    }
+
+    function initializeBoard() {
+      const fragment = document.createDocumentFragment();
+      for (let index = 0; index < 64; index += 1) {
+        const square = document.createElement("div");
+        square.className = "square";
+        square.setAttribute("aria-label", `${String.fromCharCode(97 + index % 8)}${Math.floor(index / 8) + 1}`);
+        fragment.append(square);
+      }
+      elements.board.append(fragment);
+    }
+
+    function updateExportButton() {
+      const reviewedCount = store.games.filter((game) => store.reviewerMarks.has(game.key)).length;
+      elements["export-button"].disabled = reviewedCount === 0;
+      elements["export-button"].textContent = reviewedCount ? `导出复核 JSON（${reviewedCount}）` : "导出复核 JSON";
+    }
+
+    function exportReviewedBundle() {
+      const reviewedGames = store.games.filter((game) => store.reviewerMarks.has(game.key));
+      if (!reviewedGames.length) return;
+      const generatedAt = new Date().toISOString();
+      const games = store.games.map((game) => ({
+        account: game.account,
+        gameId: game.gameId,
+        created: game.created,
+        targetColor: game.targetColor,
+        opponentAccount: game.opponentAccount,
+        actualMoveCount: game.actualMoveCount,
+        targetMoveCount: game.targetMoveCount,
+        sideTimeSummary: game.sideTimeSummary,
+        manualReview: game.manual ? {
+          judgment: game.manual.judgment,
+          offbookPly: game.manual.offbookPly,
+          targetDecisionNumber: game.manual.targetDecisionNumber,
+          agentNote: game.manual.note
+        } : null,
+        algorithm: game.algorithm,
+        reviewerMark: store.reviewerMarks.get(game.key) || null,
+        plies: game.plies
+      }));
+      const reviewedOffbook = reviewedGames.filter((game) => store.reviewerMarks.get(game.key)?.judgment === "offbook").length;
+      const payload = {
+        schema: "offbook-replay-review-bundle-v1",
+        generatedAt,
+        purpose: "脱谱候选回放人工复核结果；reviewerMark 为本页面新增的复核标记",
+        timePolicy: "thinkingTimeMs is original OQ per-move milliseconds; default playback is 1x",
+        counts: {
+          players: new Set(games.map((game) => game.account)).size,
+          playerGameEvaluations: games.length,
+          algorithmCandidates: games.filter((game) => game.algorithm?.hasCandidate).length,
+          reviewedGames: reviewedGames.length,
+          reviewedOffbook,
+          reviewedNoOffbook: reviewedGames.length - reviewedOffbook
+        },
+        sources: { importedFiles: Array.from(store.importedFiles) },
+        games
+      };
+      const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `offbook_replay_reviewed_${generatedAt.replace(/[:.]/g, "-")}.json`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      setStatus(`已导出 ${reviewedGames.length} 局复核记录；JSON 共含 ${games.length} 个选手－对局`, "ok");
+    }
+
+    function resetAll() {
+      pausePlayback();
+      store.packetGames.clear(); store.algorithms.clear(); store.manuals.clear(); store.reviewerMarks.clear();
+      store.games = []; store.filteredGames = []; store.selectedKey = null; store.appliedPly = 0;
+      store.importedFiles.clear(); resetClock();
+      elements["file-input"].value = "";
+      elements["account-filter"].replaceChildren(new Option("全部选手", ""));
+      elements["candidate-filter"].value = "all";
+      elements["search-filter"].value = "";
+      updateExportButton();
+      renderGameList(); showEmpty(); setStatus("尚未导入数据");
+    }
+
+    function runSelfChecks() {
+      const board = new OthelloBoard();
+      const legal = board.legalMoves("black").map((index) => `${String.fromCharCode(97 + index % 8)}${Math.floor(index / 8) + 1}`).sort();
+      const expected = ["c4", "d3", "e6", "f5"];
+      if (JSON.stringify(legal) !== JSON.stringify(expected)) throw new Error(`棋盘自检失败：${legal.join(",")}`);
+      board.apply("c4", "black");
+      const snapshot = board.snapshot();
+      if (snapshot.black !== 4 || snapshot.white !== 1) throw new Error("翻子自检失败");
+      const reviewerAnchor = normalizeReviewerMark({ judgment: "offbook", offbookPly: 11, targetDecisionNumber: 6 });
+      const reviewerNoOffbook = normalizeReviewerMark({ judgment: "no_offbook", offbookPly: null });
+      if (reviewerAnchor.offbookPly !== 11 || reviewerAnchor.targetDecisionNumber !== 6 || reviewerNoOffbook.offbookPly !== null) throw new Error("复核标记自检失败");
+    }
+
+    elements["file-input"].addEventListener("change", (event) => ingestFiles(event.target.files));
+    elements["export-button"].addEventListener("click", exportReviewedBundle);
+    elements["reset-button"].addEventListener("click", resetAll);
+    elements["inspector-toggle"].addEventListener("click", toggleInspector);
+    elements["account-filter"].addEventListener("change", applyFilters);
+    elements["candidate-filter"].addEventListener("change", applyFilters);
+    elements["search-filter"].addEventListener("input", applyFilters);
+    elements["play-button"].addEventListener("click", togglePlayback);
+    elements["first-button"].addEventListener("click", () => seekTo(0));
+    elements["prev-button"].addEventListener("click", () => seekTo(store.appliedPly - 1));
+    elements["next-button"].addEventListener("click", () => seekTo(store.appliedPly + 1));
+    elements["last-button"].addEventListener("click", () => { const game = selectedGame(); if (game) seekTo(game.plies.length); });
+    elements.scrubber.addEventListener("input", (event) => seekTo(Number(event.target.value)));
+    elements["position-select"].addEventListener("change", (event) => seekTo(Number(event.target.value)));
+    elements["speed-select"].addEventListener("change", () => {
+      const wasRunning = store.running;
+      pausePlayback();
+      store.speed = Number(elements["speed-select"].value);
+      if (wasRunning) startPlayback();
+    });
+    elements["jump-algorithm"].addEventListener("click", () => jumpBefore(selectedGame()?.algorithm?.candidatePly));
+    elements["jump-manual"].addEventListener("click", () => jumpBefore(selectedGame()?.manual?.offbookPly));
+    elements["mark-anchor"].addEventListener("click", markCurrentAnchor);
+    elements["mark-no-offbook"].addEventListener("click", markNoOffbook);
+    elements["clear-review"].addEventListener("click", clearReviewerMark);
+    elements["import-zone"].addEventListener("dragover", (event) => { event.preventDefault(); elements["import-zone"].classList.add("dragging"); });
+    elements["import-zone"].addEventListener("dragleave", () => elements["import-zone"].classList.remove("dragging"));
+    elements["import-zone"].addEventListener("drop", (event) => { event.preventDefault(); elements["import-zone"].classList.remove("dragging"); ingestFiles(event.dataTransfer.files); });
+    window.addEventListener("keydown", (event) => {
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      if (event.code === "Space") { event.preventDefault(); togglePlayback(); }
+      else if (event.key === "ArrowLeft") seekTo(store.appliedPly - 1);
+      else if (event.key === "ArrowRight") seekTo(store.appliedPly + 1);
+      else if (event.key === "Home") seekTo(0);
+      else if (event.key === "End") { const game = selectedGame(); if (game) seekTo(game.plies.length); }
+      else if (event.key.toLocaleLowerCase() === "c") jumpBefore(selectedGame()?.algorithm?.candidatePly);
+    });
+    window.addEventListener("resize", () => { const game = selectedGame(); if (game) drawTimeChart(game); });
+
+    initializeBoard();
+    try { runSelfChecks(); }
+    catch (error) { setStatus(`页面自检失败：${error.message}`, "error"); }
+  </script>
+</body>
+</html>

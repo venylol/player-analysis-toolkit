@@ -1,0 +1,49 @@
+# Python and test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local environments and editor state
+.venv/
+venv/
+.env
+.env.*
+.vscode/
+.idea/
+
+# Player-specific investigations and generated reports are private
+/investigations/
+/tmp/
+/output/
+**/player_investigations/
+**/investigation_outputs/
+
+# This local integration test names and reads a private investigation fixture.
+/tests/test_sentinel_elo_v4.py
+
+# Generated research data, model artifacts, caches, and run outputs
+/research/**/data/
+/research/**/outputs/
+/research/**/checkpoints/
+/research/**/models/
+*.npz
+*.pt
+*.pth
+*.onnx
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+*.csv-journal
+*.log
+
+# Compiled or packaged binaries
+*.exe
+*.dll
+*.obj
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Nested repository metadata from historical snapshots
+**/.git/

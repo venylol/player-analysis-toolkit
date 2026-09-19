@@ -1,0 +1,23 @@
+{
+  "schema": "player-anomaly-sentinel-reference-config-v1",
+  "version": "v9-20260822",
+  "referenceDirectory": "research/offbook_detection/data/oq_elo_matchup500_blackwhite_reference_level22_1600plus_20260822",
+  "derivedDirectory": "research/offbook_detection/data/oq_sentinel_reference_level22_1600plus_v9_20260822",
+  "directedTargetRecords": "research/offbook_detection/data/oq_sentinel_reference_level22_1600plus_v9_20260822/directed_target_records.jsonl",
+  "referenceManifest": "research/offbook_detection/data/oq_sentinel_reference_level22_1600plus_v9_20260822/reference_sha256_manifest.json",
+  "formalEloMinimum": 1600,
+  "formalEloMaximum": 2500,
+  "formalEloMaximumDerivation": "max(historicalFormalEloMaximum, currentMatchup500.maximumElo, frozenLeaderboardMaximum)",
+  "historicalFormalEloMaximum": 2495,
+  "eloBandWidth": 100,
+  "targetDimension": "black_white_directed_cell",
+  "targetPerBlackWhiteCell": 500,
+  "targetPerUnorderedPair": 500,
+  "legacyUnorderedSummaryTargetPerPair": 500,
+  "targetPerUnorderedPairRole": "legacy compatibility field only; never used for expansion selection",
+  "wldFromGlobalPlacementPlyInclusive": 39,
+  "pseudoPlayerReplicates": 10000,
+  "fixedCandidateBootstrapReplicates": 10000,
+  "randomSeed": 20260821502,
+  "selectionSeed": 20260821502
+}

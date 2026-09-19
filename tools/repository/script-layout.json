@@ -1,0 +1,61 @@
+{
+  "schema": "player-analysis-script-layout-v1",
+  "moves": [
+    { "from": "analysis_core.py", "to": "src/player_analysis_toolkit/analysis_core.py" },
+    { "from": "player_analysis.py", "to": "scripts/analysis/player_analysis.py" },
+    { "from": "summarize_reference_offbook.py", "to": "scripts/analysis/summarize_reference_offbook.py" },
+    { "from": "oq_account_bundle.py", "to": "scripts/data/oq_account_bundle.py" },
+    { "from": "run_egaroucid_bundle.py", "to": "scripts/data/run_egaroucid_bundle.py" },
+    { "from": "render_github_pdf.py", "to": "scripts/reporting/render_github_pdf.py" },
+    { "from": "detect_offbook.py", "to": "scripts/analysis/detect_offbook.py" },
+    { "from": "offbook_analysis.py", "to": "scripts/analysis/offbook_analysis.py" },
+    { "from": "generate_review_checklist.py", "to": "scripts/review/generate_review_checklist.py" },
+    { "from": "materialize_reference_marks.py", "to": "scripts/review/materialize_reference_marks.py" },
+    { "from": "verify_opening_reference_output.py", "to": "scripts/validation/verify_opening_reference_output.py" },
+    { "from": "standard_openings.json", "to": "assets/standard_openings.json" },
+    { "from": "review_checklist_template.md", "to": "templates/review_checklist_template.md" },
+    { "from": "investigations/oq_loss_phase_boundaries_20260803/analyze_oq_loss_phase_boundaries.py", "to": "scripts/analysis/analyze_oq_loss_phase_boundaries.py" },
+
+    { "from": "research/tcn_loss_model/scripts/audit_legacy_hint6_reuse.py", "to": "research/tcn_loss_model/scripts/audit/audit_legacy_hint6_reuse.py" },
+    { "from": "research/tcn_loss_model/scripts/audit_legacy_hint_reference_samples.py", "to": "research/tcn_loss_model/scripts/audit/audit_legacy_hint_reference_samples.py" },
+    { "from": "research/tcn_loss_model/scripts/audit_model_ready_delivery.py", "to": "research/tcn_loss_model/scripts/audit/audit_model_ready_delivery.py" },
+    { "from": "research/tcn_loss_model/scripts/audit_oq_extension_source.py", "to": "research/tcn_loss_model/scripts/audit/audit_oq_extension_source.py" },
+    { "from": "research/tcn_loss_model/scripts/audit_oq_profile_index_coverage.py", "to": "research/tcn_loss_model/scripts/audit/audit_oq_profile_index_coverage.py" },
+    { "from": "research/tcn_loss_model/scripts/audit_oq_profile_training_activation.py", "to": "research/tcn_loss_model/scripts/audit/audit_oq_profile_training_activation.py" },
+    { "from": "research/tcn_loss_model/scripts/validate_oq_bilateral_handoff.py", "to": "research/tcn_loss_model/scripts/audit/validate_oq_bilateral_handoff.py" },
+
+    { "from": "research/tcn_loss_model/scripts/build_oq_hint_source_from_games.py", "to": "research/tcn_loss_model/scripts/data/build_oq_hint_source_from_games.py" },
+    { "from": "research/tcn_loss_model/scripts/export_safe_smoke_source_subset.py", "to": "research/tcn_loss_model/scripts/data/export_safe_smoke_source_subset.py" },
+    { "from": "research/tcn_loss_model/scripts/extract_games_metadata_from_oq_account_bundle.py", "to": "research/tcn_loss_model/scripts/data/extract_games_metadata_from_oq_account_bundle.py" },
+    { "from": "research/tcn_loss_model/scripts/fetch_oq_player_profiles.py", "to": "research/tcn_loss_model/scripts/data/fetch_oq_player_profiles.py" },
+    { "from": "research/tcn_loss_model/scripts/materialize_oq_profile_context.py", "to": "research/tcn_loss_model/scripts/data/materialize_oq_profile_context.py" },
+    { "from": "research/tcn_loss_model/scripts/materialize_oq_tcn_model_ready.py", "to": "research/tcn_loss_model/scripts/data/materialize_oq_tcn_model_ready.py" },
+    { "from": "research/tcn_loss_model/scripts/materialize_personal_oq_tcn_model_ready.py", "to": "research/tcn_loss_model/scripts/data/materialize_personal_oq_tcn_model_ready.py" },
+    { "from": "research/tcn_loss_model/scripts/merge_model_ready_npz.py", "to": "research/tcn_loss_model/scripts/data/merge_model_ready_npz.py" },
+    { "from": "research/tcn_loss_model/scripts/prepare_personal_safe_hint_source.py", "to": "research/tcn_loss_model/scripts/data/prepare_personal_safe_hint_source.py" },
+    { "from": "research/tcn_loss_model/scripts/resplit_model_ready_npz.py", "to": "research/tcn_loss_model/scripts/data/resplit_model_ready_npz.py" },
+    { "from": "research/tcn_loss_model/scripts/sanitize_oq_frozen_source.py", "to": "research/tcn_loss_model/scripts/data/sanitize_oq_frozen_source.py" },
+    { "from": "research/tcn_loss_model/scripts/subset_model_ready_npz.py", "to": "research/tcn_loss_model/scripts/data/subset_model_ready_npz.py" },
+
+    { "from": "research/tcn_loss_model/scripts/evaluate_personal_tcn_ensemble.py", "to": "research/tcn_loss_model/scripts/modeling/evaluate_personal_tcn_ensemble.py" },
+    { "from": "research/tcn_loss_model/scripts/match_hint1_templates.py", "to": "research/tcn_loss_model/scripts/modeling/match_hint1_templates.py" },
+    { "from": "research/tcn_loss_model/scripts/predict_profile_ensemble_diagnostics.py", "to": "research/tcn_loss_model/scripts/modeling/predict_profile_ensemble_diagnostics.py" },
+    { "from": "research/tcn_loss_model/scripts/recompute_hint1_templates.py", "to": "research/tcn_loss_model/scripts/modeling/recompute_hint1_templates.py" },
+    { "from": "research/tcn_loss_model/scripts/sample_recompute_hint6.py", "to": "research/tcn_loss_model/scripts/modeling/sample_recompute_hint6.py" },
+    { "from": "research/tcn_loss_model/scripts/select_seed42_epoch_schedule.py", "to": "research/tcn_loss_model/scripts/modeling/select_seed42_epoch_schedule.py" },
+
+    { "from": "research/tcn_loss_model/scripts/build_windows_data_prep_handoff.py", "to": "research/tcn_loss_model/scripts/packaging/build_windows_data_prep_handoff.py" },
+    { "from": "research/tcn_loss_model/scripts/build_windows_extension_1200_handoff.py", "to": "research/tcn_loss_model/scripts/packaging/build_windows_extension_1200_handoff.py" },
+    { "from": "research/tcn_loss_model/scripts/build_windows_incremental_hint6_handoff.py", "to": "research/tcn_loss_model/scripts/packaging/build_windows_incremental_hint6_handoff.py" },
+    { "from": "research/tcn_loss_model/scripts/package_extension_return.py", "to": "research/tcn_loss_model/scripts/packaging/package_extension_return.py" },
+
+    { "from": "research/tcn_loss_model/scripts/assemble_safe_hint_recompute.py", "to": "research/tcn_loss_model/scripts/pipeline/assemble_safe_hint_recompute.py" },
+    { "from": "research/tcn_loss_model/scripts/safe_recompute_egaroucid_hints.py", "to": "research/tcn_loss_model/scripts/pipeline/safe_recompute_egaroucid_hints.py" },
+    { "from": "research/tcn_loss_model/scripts/supervise_authorized_hint6_w12.ps1", "to": "research/tcn_loss_model/scripts/pipeline/supervise_authorized_hint6_w12.ps1" },
+    { "from": "research/tcn_loss_model/scripts/supervise_safe_full_recompute.ps1", "to": "research/tcn_loss_model/scripts/pipeline/supervise_safe_full_recompute.ps1" },
+    { "from": "research/tcn_loss_model/scripts/supervise_safe_post_recompute.ps1", "to": "research/tcn_loss_model/scripts/pipeline/supervise_safe_post_recompute.ps1" },
+
+    { "from": "research/tcn_loss_model/scripts/create_tcn_loss_diagnostic_png.py", "to": "research/tcn_loss_model/scripts/reporting/create_tcn_loss_diagnostic_png.py" },
+    { "from": "research/tcn_loss_model/scripts/create_tcn_loss_diagnostic_visual.py", "to": "research/tcn_loss_model/scripts/reporting/create_tcn_loss_diagnostic_visual.py" }
+  ]
+}

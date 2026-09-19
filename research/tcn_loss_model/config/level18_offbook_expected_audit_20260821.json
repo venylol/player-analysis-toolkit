@@ -1,0 +1,14 @@
+{
+  "schema": "offbook-ply-level18-hint6-expected-audit-v1",
+  "sourceDescription": "confirmed pre-run audit expectations; formal materialization must recompute and compare",
+  "games": 11200,
+  "directedSideRecords": 22400,
+  "offbook": 17637,
+  "noOffbook": 4763,
+  "bothOffbookGames": 6771,
+  "oneOffbookGames": 4095,
+  "noneOffbookGames": 334,
+  "anchorMinimum": 5,
+  "anchorMaximum": 58,
+  "anchorMedian": 17
+}

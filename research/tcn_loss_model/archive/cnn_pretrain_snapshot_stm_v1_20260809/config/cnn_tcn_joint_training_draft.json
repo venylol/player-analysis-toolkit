@@ -1,0 +1,55 @@
+{
+  "status": "plan-only-do-not-run",
+  "fixed_existing_split": true,
+  "board_perspective": "snapshot_side_to_move_v1",
+  "board_cnn": {
+    "input_channels": 23,
+    "board_channels": 64,
+    "residual_blocks": 6,
+    "board_embedding_dim": 96,
+    "embedding_projection_kernel": 1
+  },
+  "initialization": {
+    "tcn": "current_main_model",
+    "numeric_362_branch": "current_main_model",
+    "fusion_and_formal_heads": "current_main_model",
+    "board_cnn": "strictly_transferred_independent_pretrain",
+    "randomize_tcn": false
+  },
+  "stages": [
+    {
+      "name": "A-adaptation",
+      "epochs": 3,
+      "frozen": ["board_cnn_all"],
+      "trainable": ["tcn", "numeric_362_branch", "fusion", "formal_heads"]
+    },
+    {
+      "name": "B-partial-unfreeze",
+      "epochs": 5,
+      "trainable_cnn": ["embedding_projection_64_to_96", "last_residual_blocks", "final_layer_norm"],
+      "cnn_learning_rate_multiplier": 0.1
+    },
+    {
+      "name": "C-full-joint",
+      "epochs": 10,
+      "learning_rates": {
+        "cnn": 0.00001,
+        "tcn_and_fusion": 0.0001,
+        "formal_heads": 0.0001
+      }
+    }
+  ],
+  "loss": {
+    "existing_thinking_time_severity_wld": "unchanged",
+    "legal_aux_weight": 0.10,
+    "value_aux_weight": 0.10
+  },
+  "auxiliary_sampling": {
+    "strategy": "random_valid_nodes_per_game_sequence",
+    "auxiliary_nodes_per_game": 2,
+    "state_only_channel_rule": "channels 0-2 unchanged; channels 3-22 strictly zero",
+    "input_channels": ["current_empty", "current_X", "current_O"],
+    "forbidden_inputs": ["hint channels", "current_hint_values", "numeric features", "history"]
+  },
+  "test_policy": "evaluate only after final candidate selection"
+}

@@ -1,0 +1,35 @@
+{
+  "data_dir": "data/egaroucid_7_5_1_lv17",
+  "shard_dir": "data/board_cnn_pretrain_shards",
+  "splits": {
+    "train": [
+      "0000000.txt", "0000001.txt", "0000002.txt", "0000003.txt",
+      "0000004.txt", "0000005.txt", "0000006.txt", "0000007.txt",
+      "0000008.txt", "0000009.txt", "0000010.txt", "0000011.txt",
+      "0000012.txt", "0000013.txt", "0000014.txt", "0000015.txt",
+      "0000016.txt", "0000017.txt", "0000018.txt", "0000019.txt",
+      "0000020.txt", "0000021.txt", "0000022.txt", "0000023.txt"
+    ],
+    "validation": ["0000024.txt"],
+    "test": ["0000025.txt"]
+  },
+  "batch_size": 1024,
+  "gradient_accumulation_steps": 1,
+  "epochs": 12,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.0001,
+  "legal_loss_weight": 1.0,
+  "value_loss_weight": 1.0,
+  "num_workers": 8,
+  "seed": 42,
+  "checkpoint_interval_epochs": 1,
+  "validation_interval_epochs": 1,
+  "mixed_precision": true,
+  "resume_strategy": "latest",
+  "smoke_max_samples": 64,
+  "board_channels": 64,
+  "residual_blocks": 6,
+  "board_embedding_dim": 96,
+  "embedding_projection_kernel": 1,
+  "input_channels": 3
+}

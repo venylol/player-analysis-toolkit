@@ -1,0 +1,157 @@
+{
+  "schema": "oq-reference-superseded-artifacts-v2",
+  "createdAt": "2026-09-11",
+  "switchBatch": "oq-reference600-blackwhite-20260911-once",
+  "switchStatus": "formal_600_chain_active",
+  "dataRoot": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data",
+  "activeRuntimeConfigFilesChecked": [
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\sentinel_reference_config.json",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\sentinel_elo_reference_config.json",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\sentinel_reference_config_v11_matchup600_20260911.json",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\sentinel_elo_reference_config_v4_matchup600_20260911.json",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\scripts\\analysis\\sentinel_elo_analysis.py",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\scripts\\analysis\\run_player_investigation.py",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\src\\player_analysis_toolkit\\sentinel_elo.py"
+  ],
+  "currentFormalDefaultConfigReferencesOnly600Chain": true,
+  "currentFormalDefaultConfigSha256": {
+    "sentinel_reference_config.json": "1D00143F6CF96AEBC0B8769EB4B761EAF3F02790C041FE657E4AF839FC240AFA",
+    "sentinel_elo_reference_config.json": "D2BFEF1FB3C405D88CB34593131859FAEB353B73EC31DC25BB51497380675728"
+  },
+  "historicalConfigurationReferences": [
+    {
+      "path": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\oq_reference_blackwhite_expansion_config_v3_matchup600_20260911.json",
+      "role": "600 batch baseline contract; historical inputs only, not a current formal/default entrypoint",
+      "referencesOldRoles": ["source550", "sentinel550", "elo550"]
+    },
+    {
+      "path": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\oq_reference_blackwhite_expansion_config_v2_matchup550_20260829.json",
+      "role": "historical 550 batch configuration",
+      "referencesOldRoles": ["source550", "sentinel550", "elo550", "anscombe550", "calibration550"]
+    },
+    {
+      "path": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\sentinel_reference_config_v10_matchup550_20260829.json",
+      "role": "historical Sentinel 550 configuration",
+      "referencesOldRoles": ["source550", "sentinel550"]
+    },
+    {
+      "path": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\sentinel_elo_reference_config_v4_matchup550_20260829.json",
+      "role": "historical Player Elo 550 configuration",
+      "referencesOldRoles": ["source550", "sentinel550", "elo550", "anscombe550", "calibration550"]
+    }
+  ],
+  "legacyCodeReferences": [
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\oq_reference500_blackwhite_pipeline.py",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\run_oq_level22_blackwhite.py"
+  ],
+  "allowedRecycleDirectories": [
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_elo_matchup550_blackwhite_reference_level22_1600plus_20260829",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_reference_level22_1600plus_v10_20260829",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_reference_level22_1600plus_v4_matchup550_20260829",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_anscombe_reference_v4_matchup550_20260829",
+    "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_calibration_v4_matchup550_20260829"
+  ],
+  "entries": [
+    {
+      "id": "source550",
+      "oldAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_elo_matchup550_blackwhite_reference_level22_1600plus_20260829",
+      "oldRole": "550-game black-white directed source Level22 Reference",
+      "oldManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_elo_matchup550_blackwhite_reference_level22_1600plus_20260829\\final_sha256_manifest.json",
+      "oldManifestSha256": "016E1F7A4359407DD90AD5B72EA958A84FE6C951DE81EB1A8CAD6B5D4E0A265F",
+      "replacementAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_elo_matchup600_blackwhite_reference_level22_1600plus_20260911",
+      "replacementManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_elo_matchup600_blackwhite_reference_level22_1600plus_20260911\\final_sha256_manifest.json",
+      "replacementManifestSha256": "163B642F3A44039D0A2F0C9CCEBF9F415909F593D2DD0D38789D10BC0A8DFF4E",
+      "replacementSelfContained": true,
+      "currentFormalDefaultConfigReferencesOldPath": false,
+      "stillReferencedByAnyConfiguration": true,
+      "historicalConfigurationOnly": true,
+      "activeRuntimeDependency": false,
+      "runtimeDependencyPaths": [],
+      "allowedDataArtifact": true,
+      "recycleApproved": true
+    },
+    {
+      "id": "sentinel550",
+      "oldAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_reference_level22_1600plus_v10_20260829",
+      "oldRole": "Sentinel v10 derived Reference from the 550 chain",
+      "oldManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_reference_level22_1600plus_v10_20260829\\reference_sha256_manifest.json",
+      "oldManifestSha256": "F258F67199B78FA6DE241698A16D772D165CD3ECC09586DA087EDB7EC2C1A5DD",
+      "replacementAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_reference_level22_1600plus_v11_20260911",
+      "replacementManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_reference_level22_1600plus_v11_20260911\\reference_sha256_manifest.json",
+      "replacementManifestSha256": "E379110470735302AE676574EE419EBEA055FFBEF4D42B120A1024C50D0A87AF",
+      "replacementSelfContained": true,
+      "currentFormalDefaultConfigReferencesOldPath": false,
+      "stillReferencedByAnyConfiguration": true,
+      "historicalConfigurationOnly": true,
+      "activeRuntimeDependency": false,
+      "runtimeDependencyPaths": [],
+      "allowedDataArtifact": true,
+      "recycleApproved": true
+    },
+    {
+      "id": "elo550",
+      "oldAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_reference_level22_1600plus_v4_matchup550_20260829",
+      "oldRole": "Player Elo v4 phase Reference from the 550 chain",
+      "oldManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_reference_level22_1600plus_v4_matchup550_20260829\\reference_sha256_manifest.json",
+      "oldManifestSha256": "D9AC62F5DCB6D727B692B98587B963466EAEBA035129B6F7A64E5E2A91467E4C",
+      "replacementAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_reference_level22_1600plus_v4_matchup600_20260911",
+      "replacementManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_reference_level22_1600plus_v4_matchup600_20260911\\reference_sha256_manifest.json",
+      "replacementManifestSha256": "99ACAB47CE465EA86CE111EEE2BA988849E0ED5E657CAE4AEBBD5A876B8A49DA",
+      "replacementSelfContained": true,
+      "currentFormalDefaultConfigReferencesOldPath": false,
+      "stillReferencedByAnyConfiguration": true,
+      "historicalConfigurationOnly": true,
+      "activeRuntimeDependency": false,
+      "runtimeDependencyPaths": [],
+      "allowedDataArtifact": true,
+      "recycleApproved": true
+    },
+    {
+      "id": "anscombe550",
+      "oldAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_anscombe_reference_v4_matchup550_20260829",
+      "oldRole": "Anscombe/reference-z v4 cache from the 550 chain",
+      "oldManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_anscombe_reference_v4_matchup550_20260829\\anscombe_reference_manifest.json",
+      "oldManifestSha256": "2792F1F240F7C9CEFCF247577783E26FD6FA38538A0FA5C86854EFD94D35990D",
+      "replacementAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_anscombe_reference_v4_matchup600_20260911",
+      "replacementManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_anscombe_reference_v4_matchup600_20260911\\anscombe_reference_manifest.json",
+      "replacementManifestSha256": "3271E339F43509A2C10D86294C70BCB41EDCCAB3C980166B187774EE669E87E7",
+      "replacementSelfContained": true,
+      "currentFormalDefaultConfigReferencesOldPath": false,
+      "stillReferencedByAnyConfiguration": true,
+      "historicalConfigurationOnly": true,
+      "activeRuntimeDependency": false,
+      "runtimeDependencyPaths": [],
+      "allowedDataArtifact": true,
+      "recycleApproved": true
+    },
+    {
+      "id": "calibration550",
+      "oldAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_calibration_v4_matchup550_20260829",
+      "oldRole": "Player Elo v4 calibration and cases from the 550 chain",
+      "oldManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_calibration_v4_matchup550_20260829\\calibration_sha256_manifest_v4.json",
+      "oldManifestSha256": "DC96F7D39E1868F3B1BD1B66456353954F7FD7C1CE56371D84F63CF12279DCE5",
+      "replacementAbsolutePath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_calibration_v4_matchup600_20260911",
+      "replacementManifestPath": "C:\\Users\\MeroAF\\Desktop\\比赛编排\\player_analysis_toolkit\\research\\offbook_detection\\data\\oq_sentinel_elo_calibration_v4_matchup600_20260911\\calibration_sha256_manifest_v4.json",
+      "replacementManifestSha256": "D64A7866C3AE99CD8D66C8526E66B9D79A6DC69015B96030DF552A9358162AC2",
+      "replacementSelfContained": true,
+      "currentFormalDefaultConfigReferencesOldPath": false,
+      "stillReferencedByAnyConfiguration": true,
+      "historicalConfigurationOnly": true,
+      "activeRuntimeDependency": false,
+      "runtimeDependencyPaths": [],
+      "allowedDataArtifact": true,
+      "recycleApproved": true
+    }
+  ],
+  "recycleApproval": {
+    "allEntriesApproved": true,
+    "approvedDirectoryCount": 5,
+    "onlyApprovedDataDirectories": true,
+    "newChainAudited": true,
+    "formalConfigsSwitched": true,
+    "postSwitchMinimalChecksPassed": true,
+    "fullSuiteKnownUnrelatedFailure": "tests/test_sentinel_elo_v4.py::SentinelEloV4Tests::test_partial_foolorclever_inputs_match_serial_and_16_process_candidates; pre-existing investigations/foolorclever_sentinel_20260830/estimated_elo/estimated_elo.json was intentionally preserved",
+    "recycleTool": "tools/repository/send_to_recycle_bin.ps1",
+    "recoverableFromWindowsRecycleBin": true
+  }
+}

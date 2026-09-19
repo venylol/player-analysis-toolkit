@@ -1,0 +1,86 @@
+{
+  "schema": "temporal-transformer-stage2-frozen-config-v1",
+  "status": "frozen-ready-for-implementation",
+  "data": {
+    "directory": "research/offbook_detection/data/oq_transformer_61145_20260813",
+    "games": 61145,
+    "split_unit": "original_game",
+    "player_disjoint_splits": false,
+    "unfinished_100000_directory_is_input": false
+  },
+  "orientation": {
+    "scope": "whole_game",
+    "normalized_first_black_move": "f5",
+    "transform_ids": {
+      "d3": 7,
+      "c4": 2,
+      "f5": 0,
+      "e6": 5
+    },
+    "reuse_transform_for_all_later_nodes": true,
+    "random_d4": false,
+    "multi_direction_cache": false,
+    "multi_direction_inference": false,
+    "d4_consistency_loss": false
+  },
+  "board_cache": {
+    "dtype": "float32",
+    "embedding_dim": 96,
+    "directions_per_target_view": 1
+  },
+  "time_features": {
+    "remaining_time_alignment": "post_decision",
+    "transform": "log1p_then_train_split_robust_standardization",
+    "strict_ply_is_model_input": true
+  },
+  "temporal_model": {
+    "status": "FROZEN",
+    "bidirectional": true,
+    "hidden_size": 128,
+    "layers": 3,
+    "attention_heads": 4,
+    "feedforward_size": 512,
+    "dropout": 0.1
+  },
+  "self_supervision": {
+    "masked_nodes_per_sample": 1,
+    "one_task_per_sample": true,
+    "tasks": [
+      "thinking_time",
+      "both_remaining_times",
+      "board_embedding"
+    ],
+    "span_masking": false,
+    "predictive_uncertainty": false,
+    "task_sampling_probabilities": {
+      "thinking_time": 0.3333333333333333,
+      "both_remaining_times": 0.3333333333333333,
+      "board_embedding": 0.3333333333333333
+    },
+    "loss_reduction_per_task": "mean_over_target_elements",
+    "loss_weights": {
+      "thinking_time": 1.0,
+      "both_remaining_times": 1.0,
+      "board_embedding": 1.0
+    }
+  },
+  "training": {
+    "seed": 42,
+    "seed_count": 1,
+    "spatial_encoder_frozen": true,
+    "batch_size": 1024,
+    "optimizer": "AdamW",
+    "learning_rate": 0.0003,
+    "weight_decay": 0.01,
+    "mixed_precision": "FP16",
+    "max_epochs": 32,
+    "early_stopping_patience_epochs": 3,
+    "validation_selection_metric": "sum_of_three_per_element_mse",
+    "validation_mask_nodes_fixed_across_epochs": true,
+    "continuation_from_epoch_11_checkpoint": true,
+    "final_continuation_checkpoint_epoch": 22,
+    "final_continuation_learning_rate": 0.0001
+  },
+  "delivery_endpoint": "frozen_temporal_transformer_and_sequence_cache",
+  "change_point_training_in_scope": false
+}
