@@ -18,8 +18,6 @@ venv/
 **/player_investigations/
 **/investigation_outputs/
 
-# This local integration test names and reads a private investigation fixture.
-/tests/test_sentinel_elo_v4.py
 
 # Generated research data, model artifacts, caches, and run outputs
 # Keep source directories named scripts/data trackable.
