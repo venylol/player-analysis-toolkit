@@ -22,7 +22,10 @@ venv/
 /tests/test_sentinel_elo_v4.py
 
 # Generated research data, model artifacts, caches, and run outputs
-/research/**/data/
+# Keep source directories named scripts/data trackable.
+/research/offbook_detection/**/data/
+/research/tcn_loss_model/data/
+/research/tcn_loss_model/archive/cnn_pretrain_snapshot_stm_v1_20260809/data/
 /research/**/outputs/
 /research/**/checkpoints/
 /research/**/models/
