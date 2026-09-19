@@ -622,7 +622,7 @@ batch 128、timeout 900、最多2次尝试，并在完成后执行全量 audit�
 请求棋盘、setboard 回显、hint 回显、引擎哈希、request/worker/batch ID；Level22
 逐局原子写入并执行完整棋谱/引擎契约 audit，两类审计通过后才能进入后续阶段。
 
-## 13. 玩家异常哨兵模式 V1
+## 13. 玩家异常哨兵与行棋质量等价 Elo
 
 哨兵模式从冻结的双方 Elo 二维 Reference 自动筛查最近最多30局有坐标落子的棋局，不需要预先提供
 举报局。默认配置为仓库顶层 `sentinel_reference_config.json`；配置只用相对路径引用
@@ -669,7 +669,43 @@ python scripts/analysis/sentinel_analysis.py build-reference `
 伪玩家校准；相关调查局会保留整局算法记录并显式标为 `not_calibratable`，不会跨
 颜色或 scope 借用分布。
 
-### 哨兵模式行棋质量等价 Elo（v1）
+### estimated-Elo v4（当前正式算法）
+
+当前正式 estimated-Elo 使用独立的 v4 合同：
+`estimated-elo-v4-anscombe-local-gaussian-adaptive-grid-global-knn-v1`。它使用固定
+Anscombe `y/v`、过滤后 `N_allowed` 的 `ceil(N_allowed^(2/3))`、局部 KNN 三角权重、
+相邻阶段 reference z 条件距离，以及闭式局部高斯预测密度。正式阶段字段是
+`transformedY`、`samplingVariance`、`localMeanY`、`betweenGameVariance`、
+`meanEstimateVariance`、`predictiveVariance`、`targetZ` 和
+`negativeLogPredictiveDensity`；不再把分数描述为离散精确计数概率。
+
+v4 使用独立的 `sentinel_elo_reference_config_v4_matchup600_20260911.json`、派生 Reference、单份
+reference-z 缓存和 calibration 目录，不覆盖 v1/v2/v3 产物；旧版本只为历史读取和复现实验
+保留。准备缓存时复用已有 Level22 的 `x/n`，不重新运行 Level22：
+
+```powershell
+python scripts/analysis/sentinel_elo_analysis.py `
+  --config sentinel_elo_reference_config_v4_matchup600_20260911.json `
+  build-elo-reference
+python scripts/analysis/sentinel_elo_analysis.py `
+  --config sentinel_elo_reference_config_v4_matchup600_20260911.json `
+  prepare-conditional-elo-reference
+```
+
+测试和小样本验证通过后，正式 calibration 使用 16 个 worker、每任务一个账号、
+`chunksize=1`、worker 内部查询线程 1，并以 calibration 账号单独冻结 T95，再评估 validation：
+
+```powershell
+python scripts/analysis/sentinel_elo_analysis.py `
+  --config sentinel_elo_reference_config_v4_matchup600_20260911.json `
+  calibrate-elo
+```
+
+单玩家正式入口仍是 `scripts/analysis/sentinel_unified_analysis.py`，生命周期由
+`scripts/analysis/run_player_investigation.py` 编排。完整数学、字段、恢复和哈希合同见
+[`docs/SENTINEL_ESTIMATED_ELO_V4_IMPLEMENTATION.md`](docs/SENTINEL_ESTIMATED_ELO_V4_IMPLEMENTATION.md)。
+
+### 历史方法：estimated-Elo v1
 
 这是与上述异常扫描并存的独立功能，不改变旧 sentinel 的 `scan`、`freeze`、Reference
 或输出语义。实现规格、冻结边界和验收记录见
@@ -739,16 +775,16 @@ python scripts/analysis/sentinel_elo_analysis.py estimate-elo `
 数据库扩展只影响这套独立的 estimated-Elo 参考/校准流水线，不要求重跑旧 sentinel 的
 `scan`、`freeze` 或旧输出流程。
 
-### estimated-Elo v2（实施候选，尚未切换正式配置）
+### 历史方法：estimated-Elo v2
 
 v2 直接使用每阶段的 GE4 次数 `x` 和有效着手数 `n`，对精确 K 近邻执行加权
 Beta-Binomial 最大似然拟合。每盘累加四阶段精确计数的负对数概率，再对所选目标棋取平均，
 以 1600–2500 整数网格上最小的 `J(E)` 作为点估计。有效着手较多的阶段会自然提供更多
 概率证据；这有意替代 v1 的“四阶段比例先等权平均”语义。
 
-新配置候选是 `sentinel_elo_reference_config_v2_20260828.json`。它使用独立 schema 和新目录，
-不会覆盖 v8 Reference 或旧 calibration。当前顶层 `sentinel_elo_reference_config.json` 仍是
-正式 v1 指针；只有完整 calibration 和独立 validation 通过后才能切换。
+v2 当时的候选配置是 `sentinel_elo_reference_config_v2_20260828.json`。它使用独立 schema 和
+新目录，不会覆盖 v8 Reference 或旧 calibration。v2 试验阶段的顶层
+`sentinel_elo_reference_config.json` 仍指向 v1；现行正式版本已由上文的 v4 取代。
 
 从现有 Level22 派生记录准备统一冻结的条件 reference 缓存：
 
@@ -806,7 +842,7 @@ v2 calibration 时才显示统一缓存的正式区间。重建缓存因 manifes
 `meanConditionalZ`、有效目标棋数和失败摘要；阶段诊断保存 `x/n`、`PExact`、target z、K、
 边界距离、拟合 `m/kappa`、scope 和颜色。
 
-#### estimated-Elo v3 calibration（2026-08-29）
+### 历史方法：estimated-Elo v3 calibration（2026-08-29）
 
 v3 使用独立的 `sentinel_elo_reference_config_v3_20260829.json`、adaptive
 multi-basin Elo 搜索和 global cKDTree；不会读取或覆盖 v1/v2 calibration。正式命令为：
@@ -820,44 +856,8 @@ python scripts/analysis/sentinel_elo_analysis.py `
 本次已完成 918 个 calibration 账号和 178 个 validation 账号，严格使用 16 进程、每 task
 一个账号、`chunksize=1`、每 worker 一个查询线程。由于 1,096 条曲线均报告显式
 `beta_binomial_fit_failed`，无法形成 frozen T95；artifact 状态为
-`calibration_unavailable`，顶层主配置继续保持 v1。输出位于
+`calibration_unavailable`，该轮顶层主配置因此继续保持 v1；随后已由通过验证的 v4 取代。输出位于
 `research/offbook_detection/data/oq_sentinel_elo_calibration_v3_20260829/`，覆盖率审计位于
 `research/offbook_detection/data/oq_sentinel_elo_coverage_audit_v3_20260829/`。完整 SHA、分组误差、
 运行时间和已知限制见
 [`docs/SENTINEL_ESTIMATED_ELO_V2_ACCEPTANCE_REPORT_20260828.md`](docs/SENTINEL_ESTIMATED_ELO_V2_ACCEPTANCE_REPORT_20260828.md)。
-
-#### estimated-Elo v4（当前正式算法，2026-08-29）
-
-当前正式 estimated-Elo 已切换为独立的 v4 合同：
-`estimated-elo-v4-anscombe-local-gaussian-adaptive-grid-global-knn-v1`。它使用固定
-Anscombe `y/v`、过滤后 `N_allowed` 的 `ceil(N_allowed^(2/3))`、局部 KNN 三角权重、
-相邻阶段 reference z 条件距离，以及闭式局部高斯预测密度。正式阶段字段是
-`transformedY`、`samplingVariance`、`localMeanY`、`betweenGameVariance`、
-`meanEstimateVariance`、`predictiveVariance`、`targetZ` 和
-`negativeLogPredictiveDensity`；不再把分数描述为离散精确计数概率。
-
-v4 使用独立的 `sentinel_elo_reference_config_v4_matchup600_20260911.json`、派生 Reference、单份
-reference-z 缓存和 calibration 目录，不覆盖 v1/v2/v3 产物；旧版本只为历史读取和复现实验
-保留。准备缓存时复用已有 Level22 的 `x/n`，不重新运行 Level22：
-
-```powershell
-python scripts/analysis/sentinel_elo_analysis.py `
-  --config sentinel_elo_reference_config_v4_matchup600_20260911.json `
-  build-elo-reference
-python scripts/analysis/sentinel_elo_analysis.py `
-  --config sentinel_elo_reference_config_v4_matchup600_20260911.json `
-  prepare-conditional-elo-reference
-```
-
-测试和小样本验证通过后，正式 calibration 使用 16 个 worker、每任务一个账号、
-`chunksize=1`、worker 内部查询线程 1，并以 calibration 账号单独冻结 T95，再评估 validation：
-
-```powershell
-python scripts/analysis/sentinel_elo_analysis.py `
-  --config sentinel_elo_reference_config_v4_matchup600_20260911.json `
-  calibrate-elo
-```
-
-单玩家正式入口仍是 `scripts/analysis/sentinel_unified_analysis.py`，生命周期由
-`scripts/analysis/run_player_investigation.py` 编排。完整数学、字段、恢复和哈希合同见
-[`docs/SENTINEL_ESTIMATED_ELO_V4_IMPLEMENTATION.md`](docs/SENTINEL_ESTIMATED_ELO_V4_IMPLEMENTATION.md)。
